@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Librarium - Login</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="signin-container">
+        <div class="signin-form">
+            <div class="signin-left">
+                <div class="signin-logo">
+                    <img src="/images/bookworm-logo-dark.svg" alt="BookWorm Library" width="120" height="72">
+                </div>
+                <h1 class="signin-title">Welcome Back !!</h1>
+                <p class="signin-subtitle">Please enter your credentials to log in</p>
+                
+                <form id="loginForm" onsubmit="event.preventDefault(); performLogin(document.getElementById('username').value, document.getElementById('password').value);">
+                    <input type="text" id="username" class="signin-input" placeholder="Username">
+                    <input type="password" id="password" class="signin-input" placeholder="Password">
+                    
+                    <p class="signin-forgot">Forgot password?</p>
+                    
+                    <button id="loginButton" type="submit" class="signin-button">SIGN IN</button>
+                </form>
+                
+                <div id="loginMessage" class="login-message"></div>
+            </div>
+            <div class="signin-right">
+                <div class="signin-logo">
+                    <img src="/images/bookworm-logo.svg" alt="BookWorm Library" width="120" height="72">
+                </div>
+                
+                <p class="signin-subtitle">New to our platform? Sign Up now.</p>
+                
+                <button class="signin-signup-btn">SIGN UP</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/script.js"></script>
+</body>
+</html>
