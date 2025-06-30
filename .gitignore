@@ -80,3 +80,8 @@ build/
 # Temporary files
 tmp/
 temp/
+
+# Seed data files (auto-generated)
+seed-data.js
+sample-data.json
+*.seed
