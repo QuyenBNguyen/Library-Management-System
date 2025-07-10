@@ -8,8 +8,11 @@ const bookSchema = new Schema({
     author: { type: String, required: true },
     publishedDate: { type: Date },
     publisher: { type: String},
-    status: { type: Schema.Types.ObjectId, ref: 'Status', required: true },
-
+    status: { 
+        type: String,
+        enum: ['available', 'checked out', 'lost', 'damaged', 'maintenance'],
+        default: 'available',
+    },
 });
 
 module.exports = mongoose.model('Book', bookSchema);
