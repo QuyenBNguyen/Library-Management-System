@@ -4,7 +4,6 @@ const dotenv = require("dotenv");
 const path = require("path");
 const memberRoutes = require("./routes/memberRoutes");
 const bookRoutes = require("./routes/bookRoutes");
-const { authMiddleware } = require("./middleware/auth");
 
 // Load env vars
 dotenv.config();
@@ -40,9 +39,8 @@ app.get("/", (req, res) => {
 
 // Mount routers
 app.use("/auth", require("./routes/authRoutes"));
-app.use("/manager", require("./routes/managerRoutes"));
 app.use("/member", memberRoutes);
-app.use("/books", authMiddleware, bookRoutes);
+app.use("/books", bookRoutes);
 
 const PORT = process.env.PORT || 3000;
 

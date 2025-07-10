@@ -1,5 +1,7 @@
 const express = require("express");
-const { authorize } = require("../middleware/auth");
+const authMiddleware = require("../middleware/authMiddleware");
+const roleMiddleware = require("../middleware/roleMiddleware");
+
 // Import all book controllers here
 const {
   getAllBooks,
@@ -11,15 +13,25 @@ const {
 
 const router = express.Router();
 
-router.get("/books", getAllBooks);
+router.get("/", 
+  authMiddleware,roleMiddleware(['librarian','member']),
+  getAllBooks);
 
-router.post("/books", authorize("admin", "manager"), createBook);
+router.post("/", 
+  authMiddleware,roleMiddleware(['librarian']),
+  createBook);
 
-router.get("/books/:id", authorize("admin", "manager", "member"), getBookById);
+router.get("/:id", 
+  authMiddleware,roleMiddleware(['librarian','member']), 
+  getBookById);
 
-router.put("/books/:id", authorize("admin", "manager"), updateBookById);
+router.put("/:id", 
+  authMiddleware,roleMiddleware(['librarian']),
+  updateBookById);
 
-router.delete("/books/:id", authorize("admin", "manager"), deleteBookById);
+router.delete("/:id", 
+  authMiddleware,roleMiddleware(['librarian']),
+  deleteBookById);
 
 // Export the router
 module.exports = router;

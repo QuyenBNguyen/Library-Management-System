@@ -1,162 +1,61 @@
-// @desc    Handle authentication
-// @route   POST /auth/login
 const User = require('../models/user');
-const Role = require('../models/role');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+exports.signup = async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+
+    console.log("Signup body:", req.body); // 👈 Log input
+
+    const existing = await User.findOne({ email });
+    if (existing) {
+      console.log("Email exists already");
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: role || 'member',
+    });
+
+    console.log("User created:", user); // 👈 Log success
+
+    res.status(201).json({ message: 'Registered successfully' });
+  } catch (err) {
+    console.error("Signup error:", err); // 👈 Log full error
+    res.status(500).json({ error: 'Registration failed' });
+  }
+};
 
 exports.login = async (req, res) => {
   try {
-    console.log('Login attempt:', req.body);
-    const { username, password } = req.body;
+    const { email, password } = req.body;
+    console.log("Login attempt:", email);
 
-    // Check if username and password are provided
-    if (!username || !password) {
-      return res.status(401).json({
-        success: false,
-        error: 'Username and password cannot be empty'
-      });
-    }
-    
-    // Check for admin credentials (admin = manager)
-    if (username === 'admin' && password === '123') {
-      // Find or create manager role (admin is manager)
-      let managerRole = await Role.findOne({ name: 'manager' });
-      if (!managerRole) {
-        managerRole = await Role.create({ name: 'manager' });
-      }
-      
-      // Find existing admin user or create one
-      let adminUser = await User.findOne({ email: 'admin' }).populate('role');
-      if (!adminUser) {
-        adminUser = await User.create({
-          name: 'Library Admin',
-          email: 'admin',
-          password: '123',
-          role: managerRole._id
-        });
-      } else {
-        // Update role to manager if it's different
-        if (adminUser.role.name !== 'manager') {
-          adminUser.role = managerRole._id;
-          await adminUser.save();
-          adminUser = await User.findById(adminUser._id).populate('role');
-        }
-      }
-      
-      return res.status(200).json({
-        success: true,
-        data: {
-          _id: adminUser._id,
-          name: adminUser.name,
-          email: adminUser.email,
-          role: adminUser.role,
-          token: adminUser._id
-        }
-      });
-    }
-    
-    // Check for member user
-    if (username === 'user' && password === '123') {
-      // Find or create member role
-      let memberRole = await Role.findOne({ name: 'member' });
-      if (!memberRole) {
-        memberRole = await Role.create({ name: 'member' });
-      }
-      
-      // Find existing member user or create one
-      let memberUser = await User.findOne({ email: 'user' }).populate('role');
-      if (!memberUser) {
-        memberUser = await User.create({
-          name: 'Library Member',
-          email: 'user',
-          password: '123',
-          role: memberRole._id
-        });
-      } else {
-        // Update role to member if it's different
-        if (memberUser.role.name !== 'member') {
-          memberUser.role = memberRole._id;
-          await memberUser.save();
-          memberUser = await User.findById(memberUser._id).populate('role');
-        }
-      }
-      
-      return res.status(200).json({
-        success: true,
-        data: {
-          _id: memberUser._id,
-          name: memberUser.name,
-          email: memberUser.email,
-          role: memberUser.role,
-          token: memberUser._id
-        }
-      });
-    }
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ error: 'Invalid credentials' });
 
-    // For other credentials, check database
-    const user = await User.findOne({ email: username }).populate('role');
-    
-    if (!user) {
-      // If user doesn't exist but credentials are not empty, create a regular member
-      if (username && password) {
-        // Find or create member role
-        let memberRole = await Role.findOne({ name: 'member' });
-        if (!memberRole) {
-          memberRole = await Role.create({ name: 'member' });
-        }
+    console.log("User found:", user);
 
-        // Create a member user
-        const newMember = await User.create({
-          name: username, // Using username as name
-          email: username,
-          password: password, // In a real app, you would hash this password
-          role: memberRole._id
-        });
+    const match = await bcrypt.compare(password, user.password);
+    console.log("Password match:", match);
 
-        // Return new member user
-        return res.status(200).json({
-          success: true,
-          data: {
-            _id: newMember._id,
-            name: newMember.name,
-            email: newMember.email,
-            role: {
-              _id: memberRole._id,
-              name: memberRole.name
-            },
-            token: newMember._id // Using user ID as token for simplicity
-          }
-        });
-      } else {
-        return res.status(401).json({
-          success: false,
-          error: 'Invalid credentials'
-        });
-      }
-    }
+    if (!match) return res.status(400).json({ error: 'Invalid credentials' });
 
-    // Check password (in a real app, you would compare hashed passwords)
-    if (user.password !== password) {
-      return res.status(401).json({
-        success: false,
-        error: 'Invalid credentials'
-      });
-    }
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '2h' }
+    );
 
-    // Return user info with token
-    res.status(200).json({
-      success: true,
-      data: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        token: user._id // Using user ID as token for simplicity
-      }
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    res.json({ token, user: { name: user.name, role: user.role, email: user.email } });
+  } catch (err) {
+    console.error("Login error:", err);  // See the real issue here
+    res.status(500).json({ error: 'Login failed' });
   }
 };

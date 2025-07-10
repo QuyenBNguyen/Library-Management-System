@@ -1,5 +1,4 @@
-const Book = require("../models/Book");
-const Status = require("../models/Status");
+const Book = require("../models/book");
 const mongoose = require("mongoose");
 
 // get all books
@@ -16,7 +15,6 @@ const getAllBooks = async (req, res) => {
 const createBook = async (req, res) => {
   const { ISBN, title, genre, author, publishedDate, publisher, status } =
     req.body;
-
   // Validate required fields
   if (!ISBN || !title || !author || !status) {
     return res
@@ -25,12 +23,6 @@ const createBook = async (req, res) => {
   }
 
   try {
-    // Check if status exists
-    const bookStatus = await Status.findById(status);
-    if (!bookStatus) {
-      return res.status(404).json({ message: "Status not found." });
-    }
-
     const book = new Book({
       ISBN,
       title,
@@ -38,7 +30,7 @@ const createBook = async (req, res) => {
       author,
       publishedDate,
       publisher,
-      status: bookStatus._id,
+      status, // just assign the string
     });
 
     const newBook = await book.save();
@@ -78,12 +70,6 @@ const updateBookById = async (req, res) => {
   }
 
   try {
-    // Check if status exists
-    const bookStatus = await Status.findById(status);
-    if (!bookStatus) {
-      return res.status(404).json({ message: "Status not found." });
-    }
-
     const book = await Book.findById(id);
     if (!book) {
       return res.status(404).json({ message: "Book not found." });
@@ -95,7 +81,7 @@ const updateBookById = async (req, res) => {
     book.author = author;
     book.publishedDate = publishedDate;
     book.publisher = publisher;
-    book.status = bookStatus._id;
+    book.status = status;
 
     const updatedBook = await book.save();
     res.status(200).json(updatedBook);
