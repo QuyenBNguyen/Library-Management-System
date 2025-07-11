@@ -471,3 +471,27 @@ exports.adminUpdateMemberRole = async (req, res) => {
     });
   }
 };
+
+// @desc    Get current member profile
+// @route   GET /member/profile
+exports.memberGetProfile = async (req, res) => {
+  try {
+    // req.user đã được authMiddleware gán
+    const user = await User.findById(req.user._id).populate('role', 'name');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
