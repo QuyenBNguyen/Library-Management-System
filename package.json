@@ -20,9 +20,11 @@
   "homepage": "https://github.com/QuyenBNguyen/Library-Management-System#readme",
   "description": "",
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.15.1",
     "react": "^19.1.0"
   },

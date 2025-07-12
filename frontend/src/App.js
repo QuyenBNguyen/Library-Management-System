@@ -1,24 +1,27 @@
-import logo from './logo.svg';
-import './App.css';
+// File: frontend/src/App.js
+
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+// Import các component của mình
+import Layout from './components/Layout';
+import HomePage from './pages/HomePage';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        {/* Định nghĩa route cho trang chủ */}
+        <Route path="/" element={
+          <Layout>
+            <HomePage />
+          </Layout>
+        } />
+
+        {/* Mình có thể tạo sẵn route cho trang sách ở đây */}
+        {/* <Route path="/books" element={<Layout><BookListPage /></Layout>} /> */}
+      </Routes>
+    </BrowserRouter>
   );
 }
 
