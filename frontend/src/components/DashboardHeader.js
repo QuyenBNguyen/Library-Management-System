@@ -1,5 +1,5 @@
 import React from "react";
-import "../../public/css/dashboard.css";
+import "../styles/dashboard.css";
 
 const DashboardHeader = ({ username = "Admin User", role = "Manager" }) => {
   // Format time and date (static for now, can use useEffect to update)
@@ -9,7 +9,7 @@ const DashboardHeader = ({ username = "Admin User", role = "Manager" }) => {
 
   return (
     <div className="top-header">
-      <div className="user-info">
+      <div className="user-info" onClick={() => window.location.href = "/profile"} style={{ cursor: "pointer" }}>
         <div className="user-avatar">
           <span className="material-icons">person</span>
         </div>

@@ -4,7 +4,6 @@ const dotenv = require("dotenv");
 const path = require("path");
 const memberRoutes = require("./routes/memberRoutes");
 const bookRoutes = require("./routes/bookRoutes");
-const { authMiddleware } = require("./middleware/auth");
 
 // Load env vars
 dotenv.config();
@@ -27,6 +26,20 @@ mongoose
 
 const app = express();
 
+// CORS middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', true);
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 // Body parser
 app.use(express.json());
 
@@ -40,10 +53,9 @@ app.get("/", (req, res) => {
 
 // Mount routers
 app.use("/auth", require("./routes/authRoutes"));
-app.use("/manager", require("./routes/managerRoutes"));
 app.use("/member", memberRoutes);
-app.use("/books", authMiddleware, bookRoutes);
+app.use("/books", bookRoutes);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

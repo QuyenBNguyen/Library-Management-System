@@ -1,15 +1,37 @@
 const express = require('express');
 const router = express.Router();
 const memberController = require('../controllers/memberController');
-const { authMiddleware, authorize } = require('../middleware/auth');
+const authMiddleware = require('../middleware/authMiddleware');
+const roleMiddleware = require('../middleware/roleMiddleware');
 
-// Member routes - view only, requires authentication and any role
-router.use(authMiddleware);
 
-// Route profile cho user hiện tại
-router.get('/profile', memberController.memberGetProfile);
-// Members can only view member data
-router.get('/', memberController.memberGetAllMembers);
-router.get('/:id', memberController.memberGetMemberById);
+// Routes for managing members
+router.get('/', 
+    authMiddleware, roleMiddleware(['librarian','manager']),
+    memberController.getAllMembers);
+router.get('/:id', 
+    authMiddleware, roleMiddleware(['librarian', 'manager']),
+    memberController.getMemberById);
+
+router.post('/', 
+    authMiddleware, roleMiddleware(['librarian', 'manager']),
+    memberController.createMember);
+
+router.put('/:id', 
+    authMiddleware, roleMiddleware(['librarian', 'manager']),
+    memberController.updateMember);
+
+router.delete('/:id', 
+    authMiddleware, roleMiddleware(['librarian', 'manager']),
+    memberController.deleteMember);
+
+// Profile routes
+router.get('/profile/me', 
+    authMiddleware, 
+    memberController.memberGetProfile);
+
+router.put('/profile/me', 
+    authMiddleware, 
+    memberController.updateMemberProfile);
 
 module.exports = router;

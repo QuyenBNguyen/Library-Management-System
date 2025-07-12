@@ -1,13 +1,13 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import "../../public/css/dashboard.css";
+import "../styles/dashboard.css";
 
 const menuItems = [
   { label: "Dashboard", icon: "dashboard" },
   { label: "Catalog", icon: "auto_stories" },
   { label: "Books", icon: "menu_book" },
   { label: "Users", icon: "people" },
-  { label: "Branches", icon: "account_balance" }
+  { label: "Branches", icon: "account_balance" },
+  { label: "Profile", icon: "person" }
 ];
 
 const DashboardSidebar = ({ active = "Dashboard", onLogout }) => {
@@ -28,6 +28,11 @@ const DashboardSidebar = ({ active = "Dashboard", onLogout }) => {
           <div
             key={item.label}
             className={`menu-item${active === item.label ? " active" : ""}`}
+            onClick={() => {
+              if (item.label === "Profile") {
+                window.location.href = "/profile";
+              }
+            }}
           >
             <span className="material-icons menu-icon">{item.icon}</span>
             {item.label}
