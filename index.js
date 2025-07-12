@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const path = require("path");
 const memberRoutes = require("./routes/memberRoutes");
 const bookRoutes = require("./routes/bookRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 const { authMiddleware } = require("./middleware/auth");
 
 // Load env vars
@@ -42,7 +43,16 @@ app.get("/", (req, res) => {
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/manager", require("./routes/managerRoutes"));
 app.use("/member", memberRoutes);
-app.use("/books", authMiddleware, bookRoutes);
+app.use(
+  "/books",
+  //  authMiddleware,
+  bookRoutes
+);
+app.use(
+  "/api/payment",
+  // , authMiddleware
+  paymentRoutes
+);
 
 const PORT = process.env.PORT || 3000;
 
