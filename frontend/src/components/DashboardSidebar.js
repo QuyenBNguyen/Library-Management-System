@@ -6,6 +6,7 @@ const menuItems = [
   { label: "Catalog", icon: "auto_stories" },
   { label: "Books", icon: "menu_book" },
   { label: "Users", icon: "people" },
+  { label: "Borrow History", icon: "history" },
   { label: "Branches", icon: "account_balance" },
   { label: "Profile", icon: "person" }
 ];
@@ -31,6 +32,10 @@ const DashboardSidebar = ({ active = "Dashboard", onLogout }) => {
             onClick={() => {
               if (item.label === "Profile") {
                 window.location.href = "/profile";
+              } else if (item.label === "Borrow History") {
+                window.location.href = "/borrow-history";
+              } else if (item.label === "Books") {
+                window.location.href = "/books";
               }
             }}
           >

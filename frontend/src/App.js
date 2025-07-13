@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 
 import DashboardPage from "./pages/DashboardPage";
 import ProfilePage from "./pages/ProfilePage";
+import BorrowHistoryPage from "./pages/BorrowHistoryPage";
+import BooksPage from "./pages/BooksPage";
 
 function App() {
   return (
@@ -16,6 +18,12 @@ function App() {
         
         {/* Route cho trang profile */}
         <Route path="/profile" element={<ProfilePage />} />
+        
+        {/* Route cho trang borrow history */}
+        <Route path="/borrow-history" element={<BorrowHistoryPage />} />
+        
+        {/* Route cho trang books */}
+        <Route path="/books" element={<BooksPage />} />
         
         {/* Route fallback - chuyển hướng về dashboard cho các URL không tồn tại */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
