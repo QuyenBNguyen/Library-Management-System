@@ -4,77 +4,28 @@ import React from 'react';
 
 const styles = {
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: '8px',
-    border: '1px solid #dee2e6', 
-    transition: 'transform 0.3s, box-shadow 0.3s',
-    width: '250px', // KÍCH THƯỚC LỚN HƠN
-    overflow: 'hidden',
-    display: 'flex',
-    flexDirection: 'column',
-    margin: '0 auto',
-    boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
+    backgroundColor: '#f5e6c9', color: '#543512', borderRadius: '8px', border: '1px solid #83552d',
+    boxShadow: '0 4px 15px rgba(0,0,0,0.1)', transition: 'transform 0.3s, box-shadow 0.3s',
+    width: '250px',
+    overflow: 'hidden', display: 'flex', flexDirection: 'column', margin: '0 auto',
   },
-  coverImage: {
-    width: '100%',
-    height: '320px', // Ảnh cao hơn
-    objectFit: 'cover',
-    backgroundColor: '#f8f9fa',
-  },
-  content: {
-    padding: '1.2rem',
-    flexGrow: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    textAlign: 'left',
-  },
-  title: {
-    fontSize: '1.2rem',
-    fontWeight: '600',
-    color: '#212529',
-    marginBottom: '0.5rem',
-    minHeight: '55px',
-  },
-  author: {
-    fontSize: '0.9rem',
-    color: '#6c757d',
-    marginBottom: '1.2rem',
-    flexGrow: 1,
-  },
-  button: {
-    backgroundColor: '#00BCD4',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    padding: '0.7rem',
-    width: '100%',
-    cursor: 'pointer',
-    fontWeight: '600',
-    fontSize: '0.9rem',
-    transition: 'background-color 0.3s',
-  },
+  coverImage: { width: '100%', height: '310px', objectFit: 'cover' },
+  content: { padding: '1rem', textAlign: 'left', display: 'flex', flexDirection: 'column', flexGrow: 1 },
+  title: { fontSize: '1.2rem', fontWeight: '600', minHeight: '55px', marginBottom: '0.25rem' },
+  author: { fontSize: '0.9rem', color: '#83552d', marginBottom: '0.5rem' },
+  price: { fontSize: '1.1rem', fontWeight: '700', color: '#D9534F', marginBottom: '1rem', marginTop: 'auto' },
+  button: { backgroundColor: '#ffae00', color: '#543512', border: 'none', borderRadius: '6px', padding: '0.7rem', width: '100%', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem' },
 };
 
-const BookCard = ({ title, author, imageUrl }) => {
+const BookCard = ({ title, author, imageUrl, price }) => {
   return (
-    <div 
-      style={styles.card}
-      onMouseOver={e => {
-        e.currentTarget.style.transform = 'translateY(-6px)';
-        e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.1)';
-      }}
-      onMouseOut={e => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.05)';
-      }}
-    >
+    <div style={styles.card} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-5px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
       <img src={imageUrl} alt={`Cover for ${title}`} style={styles.coverImage} />
       <div style={styles.content}>
         <h3 style={styles.title}>{title}</h3>
         <p style={styles.author}>by {author}</p>
-        <button style={styles.button} onMouseOver={e => e.target.style.backgroundColor='#0097A7'} onMouseOut={e => e.target.style.backgroundColor='#00BCD4'}>
-          View Details
-        </button>
+        <p style={styles.price}>{price ? price.toLocaleString('vi-VN') : 'Liên hệ'} đ</p>
+        <button style={styles.button}>View Details</button>
       </div>
     </div>
   );

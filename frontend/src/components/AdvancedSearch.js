@@ -2,32 +2,27 @@
 
 import React from 'react';
 
-// --- STYLES ---
 const styles = {
-  // Khung bao bọc đồng bộ với mục sách nổi bật
   sectionWrapper: {
-    backgroundColor: '#E9ECEF', // NỀN XÁM TRẮNG
+    backgroundColor: '#83552d', // Secondary bg
     borderRadius: '16px',
     padding: '3rem',
     margin: '4rem auto',
-    maxWidth: '1200px', // Giảm độ rộng cho gọn hơn
-    border: '1px solid #dee2e6',
-    boxShadow: '0 15px 40px rgba(0, 0, 0, 0.08)',
+    maxWidth: '1200px',
   },
   title: {
     textAlign: 'center',
     fontSize: '2.5rem',
     fontWeight: '700',
-    fontFamily: "'Poppins', sans-serif",
-    color: '#0D47A1',
+    color: '#f5e6c9', // Primary text
     marginBottom: '2.5rem',
   },
   form: {
     maxWidth: '900px',
     margin: '0 auto',
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)', // XẾP THÀNH 3 CỘT
-    gap: '1.5rem', // GIẢM KHOẢNG CÁCH
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '1.5rem',
   },
   inputGroup: {
     display: 'flex',
@@ -35,32 +30,30 @@ const styles = {
   },
   label: {
     fontWeight: '600',
-    color: '#495057',
+    color: '#e1bb80', // Secondary text
     fontSize: '0.9rem',
     marginBottom: '0.5rem',
   },
   input: {
     padding: '0.9rem 1rem',
-    border: '1px solid #ced4da',
+    border: '1px solid #e1bb80',
     borderRadius: '8px',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#f5e6c9',
     fontFamily: "'Poppins', sans-serif",
     fontSize: '1rem',
-    transition: 'border-color 0.2s, box-shadow 0.2s',
+    color: '#543512',
   },
-  // Nút bấm chiếm toàn bộ chiều rộng của form
   button: {
     gridColumn: '1 / -1',
-    backgroundColor: '#0D47A1',
-    color: 'white',
+    backgroundColor: '#ffae00',
+    color: '#543512',
     border: 'none',
     borderRadius: '8px',
     padding: '1rem',
     cursor: 'pointer',
     fontSize: '1.1rem',
     fontWeight: '600',
-    marginTop: '1rem', // Tạo khoảng cách với các ô ở trên
-    transition: 'background-color 0.3s',
+    marginTop: '1rem',
   },
 };
 
@@ -83,12 +76,9 @@ const AdvancedSearch = () => {
             <option>All Genres</option>
             <option>Modern Literature</option>
             <option>Science Fiction</option>
-            <option>Personal Development</option>
           </select>
         </div>
-        <button style={styles.button} onMouseOver={e => e.target.style.backgroundColor='#0097A7'} onMouseOut={e => e.target.style.backgroundColor='#00BCD4'}>
-          Search
-        </button>
+        <button style={styles.button}>Search</button>
       </form>
     </div>
   );
