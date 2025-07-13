@@ -1,11 +1,9 @@
-// File: frontend/src/pages/BookListPage.js
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import CategorySidebar from '../components/CategorySidebar';
 import BookCard from '../components/BookCard';
 
-// Dữ liệu mẫu đầy đủ
+// Your complete book list
 const collectionsByCategory = [
   {
     category: "Editor's Picks",
@@ -38,16 +36,14 @@ const collectionsByCategory = [
     category: 'Signed Books',
     books: [
         { id: 'Thép Đã Tôi Thế Đấy', title: 'Thép Đã Tôi Thế Đấy', author: 'Nikolai Ostrovsky', imageUrl: 'https://i.pinimg.com/736x/47/3b/e8/473be837f5e5003eff2c971e85309954.jpg', price: 135000 },
-        { id: 'Tắt đèn', title: 'Tắt đèn', author: 'Ngô Tất Tố', imageUrl: 'https://i.pinimg.com/736x/e3/c3/3e/e3c33ed5f3d5d99567ae20bd138aa913.jpg ', price: 100000 },
+        { id: 'Tắt đèn', title: 'Tắt đèn', author: 'Ngô Tất Tố', imageUrl: 'https://i.pinimg.com/736x/e3/c3/3e/e3c33ed5f3d5d99567ae20bd138aa913.jpg', price: 100000 },
         { id: 'Đất rừng phương Nam', title: 'Đất rừng phương Nam', author: 'Đoàn Giỏi', imageUrl: 'https://i.pinimg.com/736x/25/c0/0c/25c00c9d9b17c714ee2209044679b6fe.jpg', price: 120000 },
         { id: 'Thao Túng Tâm Lý', title: 'Thao Túng Tâm Lý', author: 'Shannon Thomas', imageUrl: 'https://i.pinimg.com/736x/67/5c/53/675c5385b513586a05975efa3e01b4e5.jpg', price: 96000 },
-        
     ]
   },
 ];
 
 const styles = {
-  // Đặt chiều rộng tối đa và căn giữa cho toàn trang
   pageWrapper: { padding: '2rem 1rem', maxWidth: '1600px', margin: '0 auto' },
   mainLayout: { display: 'flex', gap: '3rem' },
   mainContent: { flexGrow: 1 },
@@ -56,10 +52,13 @@ const styles = {
   searchButton: { padding: '0 1.5rem', border: 'none', backgroundColor: '#ffae00', color: '#543512', borderRadius: '0 8px 8px 0', cursor: 'pointer', fontWeight: '600', fontSize: '1rem' },
   categorySection: { marginBottom: '3rem' },
   categoryTitle: { fontSize: '1.8rem', fontWeight: '600', color: '#f5e6c9', borderBottom: '1px solid #83552d', paddingBottom: '0.8rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  viewAllButton: { background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Poppins', sans-serif", color: '#e1bb80', textDecoration: 'none', fontSize: '1rem', transition: 'color 0.2s' },
-  // BỐ CỤC 4 CỘT
-  bookGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }, // Giảm gap
-  cardLink: { textDecoration: 'none' }
+  viewAllButton: { background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Poppins', sans-serif", color: '#e1bb80', textDecoration: 'none', fontSize: '1rem' },
+  bookGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)', // 4 columns
+    gap: '1.5rem', // Tighter gap
+  },
+  cardLink: { textDecoration: 'none' },
 };
 
 const BookListPage = () => {
@@ -69,19 +68,36 @@ const BookListPage = () => {
         <CategorySidebar />
         <div style={styles.mainContent}>
           <div style={styles.searchBar}>
-              <input type="text" placeholder="Search our entire collection..." style={styles.searchInput} />
-              <button style={styles.searchButton}>Search</button>
+            <input
+              type="text"
+              placeholder="Search our entire collection..."
+              style={styles.searchInput}
+            />
+            <button style={styles.searchButton}>Search</button>
           </div>
-          
-          {collectionsByCategory.map(collection => (
-            <section key={collection.category} style={styles.categorySection}>
+
+          {collectionsByCategory.map((collection) => (
+            <section
+              key={collection.category}
+              style={styles.categorySection}
+            >
               <div style={styles.categoryTitle}>
                 <span>{collection.category}</span>
-                <button style={styles.viewAllButton} onMouseOver={e => e.target.style.color='#ffae00'} onMouseOut={e => e.target.style.color='#e1bb80'}>View all</button>
+                <button
+                  style={styles.viewAllButton}
+                  onMouseOver={(e) => (e.target.style.color = '#ffae00')}
+                  onMouseOut={(e) => (e.target.style.color = '#e1bb80')}
+                >
+                  View all
+                </button>
               </div>
               <div style={styles.bookGrid}>
                 {collection.books.map((book) => (
-                  <Link key={book.id} to={`/books/${book.id}`} style={styles.cardLink}>
+                  <Link
+                    key={book.id}
+                    to={`/books/${book.id}`}
+                    style={styles.cardLink}
+                  >
                     <BookCard {...book} />
                   </Link>
                 ))}
