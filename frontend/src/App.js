@@ -1,34 +1,35 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+// File: frontend/src/App.js
 
-import DashboardPage from "./pages/DashboardPage";
-import ProfilePage from "./pages/ProfilePage";
-import BorrowHistoryPage from "./pages/BorrowHistoryPage";
-import BooksPage from "./pages/BooksPage";
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+// Import các component và trang
+import Layout from './components/Layout';
+import HomePage from './pages/HomePage';
+import BookListPage from './pages/BookListPage';
+import BookDetailPage from './pages/BookDetailPage'; // IMPORT TRANG MỚI
+
+// Trang giả cho các link chưa làm
+const PlaceholderPage = ({ title }) => (
+  <div style={{ padding: '4rem', textAlign: 'center', color: '#f5e6c9' }}>
+    <h1>{title}</h1>
+  </div>
+);
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
-        {/* Route mặc định - hiển thị dashboard */}
-        <Route path="/" element={<DashboardPage />} />
+        <Route path="/" element={<Layout><HomePage /></Layout>} />
+        <Route path="/catalog" element={<Layout><BookListPage /></Layout>} />
         
-        {/* Route cho trang dashboard */}
-        <Route path="/dashboard" element={<DashboardPage />} />
-        
-        {/* Route cho trang profile */}
-        <Route path="/profile" element={<ProfilePage />} />
-        
-        {/* Route cho trang borrow history */}
-        <Route path="/borrow-history" element={<BorrowHistoryPage />} />
-        
-        {/* Route cho trang books */}
-        <Route path="/books" element={<BooksPage />} />
-        
-        {/* Route fallback - chuyển hướng về dashboard cho các URL không tồn tại */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        {/* THÊM ROUTE ĐỘNG CHO TRANG CHI TIẾT SÁCH */}
+        <Route path="/books/:bookId" element={<Layout><BookDetailPage /></Layout>} />
+
+        {/* Các route còn lại trên menu */}
+        <Route path="/profile" element={<Layout><PlaceholderPage title="User Profile" /></Layout>} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
 
