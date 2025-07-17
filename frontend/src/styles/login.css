@@ -1,0 +1,89 @@
+.login-page {
+  background: #543512;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-box {
+  background: #e1bb80;
+  padding: 40px;
+  border-radius: 16px;
+  width: 420px; /* wider */
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.login-logo {
+  width: 120px; /* slightly larger logo */
+  margin-bottom: 30px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-input {
+  margin-bottom: 20px;
+  padding: 16px; /* taller input */
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+}
+
+.login-button {
+  background-color: #83552d;
+  color: #1f1f1f;
+  padding: 16px;
+  font-size: 18px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.login-button:hover {
+  background-color: #543512;
+  color: #ccc
+}
+
+.error-text {
+  color: red;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.login-options {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.forgot-link {
+  font-size: 14px;
+  color: #1f1f1f;
+  text-decoration: none;
+}
+
+.forgot-link:hover {
+  color: rgb(0, 0, 0);
+}
+
+.register-button {
+  margin-top: 12px;
+  background: transparent;
+  color: #1f1f1f;
+  border: 1px solid #1f1f1f;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.register-button:hover {
+  background: #543512;
+  color: white;
+  border-color: white;
+}

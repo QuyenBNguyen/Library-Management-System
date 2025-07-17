@@ -2,35 +2,56 @@ const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-exports.signup = async (req, res) => {
+exports.register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
-
-    console.log("Signup body:", req.body); // 👈 Log input
+    const { name, email, password, role, phone, street, district, city } = req.body;
 
     const existing = await User.findOne({ email });
     if (existing) {
-      console.log("Email exists already");
       return res.status(400).json({ error: 'Email already exists' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    console.log("Registering:", email);
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
       role: role || 'member',
+      phone,
+      street,
+      district,
+      city,
     });
+    
+    console.log("User created:", user);
 
-    console.log("User created:", user); // 👈 Log success
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '2h' }
+    );
 
-    res.status(201).json({ message: 'Registered successfully' });
+    res.status(201).json({
+      message: 'Registered and logged in successfully',
+      token,
+      user: {
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        street: user.street,
+        district: user.district,
+        city: user.city
+      }
+    });
   } catch (err) {
-    console.error("Signup error:", err); // 👈 Log full error
+    console.error("Signup error:", err);
     res.status(500).json({ error: 'Registration failed' });
   }
 };
+
 
 exports.login = async (req, res) => {
   try {
