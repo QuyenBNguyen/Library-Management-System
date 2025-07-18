@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/register.css"; // Register-specific styles
-import logo from "../images/bookworm-logo-dark.svg"; // Same logo as login
+import logo from "../logo.svg"; // Use default React logo for now
 
 const Register = () => {
   const [formData, setFormData] = useState({

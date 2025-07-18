@@ -9,7 +9,7 @@ import HomePage from './pages/HomePage';
 import BookListPage from './pages/BookListPage';
 import BookDetailPage from './pages/BookDetailPage'; // IMPORT TRANG MỚI
 import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+import RegisterPage from './pages/TestRegisterPage';
 
 // Trang giả cho các link chưa làm
 const PlaceholderPage = ({ title }) => (
