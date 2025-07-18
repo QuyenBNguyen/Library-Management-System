@@ -8,6 +8,8 @@ import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import BookListPage from './pages/BookListPage';
 import BookDetailPage from './pages/BookDetailPage'; // IMPORT TRANG MỚI
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 
 // Trang giả cho các link chưa làm
 const PlaceholderPage = ({ title }) => (
@@ -20,6 +22,11 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Auth routes without layout */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        
+        {/* Main app routes with layout */}
         <Route path="/" element={<Layout><HomePage /></Layout>} />
         <Route path="/catalog" element={<Layout><BookListPage /></Layout>} />
         

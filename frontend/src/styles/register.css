@@ -1,0 +1,188 @@
+.register-page {
+  background: #543512;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.register-box {
+  background: #e1bb80;
+  padding: 40px;
+  border-radius: 16px;
+  width: 480px; /* Slightly wider than login */
+  max-width: 90vw; /* Responsive on mobile */
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+  text-align: center;
+  margin: 20px 0; /* Add vertical margin for scrolling */
+}
+
+.register-logo {
+  width: 120px;
+  margin-bottom: 30px;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-row {
+  margin-bottom: 16px;
+}
+
+.form-row-double {
+  display: flex;
+  gap: 12px;
+}
+
+.register-input {
+  padding: 14px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  background: white;
+  color: #1f1f1f;
+}
+
+.register-input:focus {
+  outline: 2px solid #543512;
+  background: #f9f9f9;
+}
+
+.register-input-half {
+  flex: 1;
+}
+
+.register-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'><path fill='%23666' d='M2 0L0 2h4zm0 5L0 3h4z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  padding-right: 40px;
+}
+
+.address-section {
+  margin: 20px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.address-title {
+  margin: 0 0 16px 0;
+  color: #1f1f1f;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: left;
+}
+
+.register-button {
+  background-color: #83552d;
+  color: #1f1f1f;
+  padding: 16px;
+  font-size: 18px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: all 0.3s ease;
+}
+
+.register-button:hover {
+  background-color: #543512;
+  color: #ccc;
+  transform: translateY(-1px);
+}
+
+.register-button:active {
+  transform: translateY(0);
+}
+
+.error-text {
+  color: #d32f2f;
+  background: rgba(211, 47, 47, 0.1);
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.success-text {
+  color: #2e7d32;
+  background: rgba(46, 125, 50, 0.1);
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.login-link-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(31, 31, 31, 0.2);
+}
+
+.login-text {
+  color: #1f1f1f;
+  font-size: 14px;
+}
+
+.login-link-button {
+  background: transparent;
+  color: #543512;
+  border: none;
+  font-size: 14px;
+  font-weight: bold;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 4px;
+}
+
+.login-link-button:hover {
+  color: #1f1f1f;
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+  .register-box {
+    width: 100%;
+    padding: 30px 20px;
+    margin: 10px;
+  }
+  
+  .form-row-double {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .register-input-half {
+    width: 100%;
+  }
+  
+  .address-section {
+    padding: 15px;
+  }
+}
+
+/* Loading state for form submission */
+.register-button:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.register-button:disabled:hover {
+  background-color: #ccc;
+  color: #666;
+  transform: none;
+}
