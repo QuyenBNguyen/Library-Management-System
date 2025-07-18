@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "../styles/register.css"; // Register-specific styles
-import logo from "../logo.svg"; // Use default React logo for now
+import "../styles/register.css";
 
-const Register = () => {
+const RegisterPage = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -57,7 +56,7 @@ const Register = () => {
       setSuccess("Registration successful! Redirecting to login...");
       setError("");
       
-      // Optional: Auto-redirect to login after 2 seconds
+      // Auto-redirect to login after 2 seconds
       setTimeout(() => {
         navigate("/login");
       }, 2000);
@@ -74,7 +73,10 @@ const Register = () => {
   return (
     <div className="register-page">
       <div className="register-box">
-        <img src={logo} alt="Logo" className="register-logo" />
+        <div className="register-logo-section">
+          <h1 className="register-title">Create Account</h1>
+          <p className="register-subtitle">Join our library management system</p>
+        </div>
 
         <form className="register-form" onSubmit={handleRegister}>
           {error && <div className="error-text">{error}</div>}
@@ -109,7 +111,7 @@ const Register = () => {
               className="register-input"
               type="password"
               name="password"
-              placeholder="Password"
+              placeholder="Password (min 6 characters)"
               value={formData.password}
               onChange={handleChange}
               required
@@ -135,9 +137,9 @@ const Register = () => {
               value={formData.role}
               onChange={handleChange}
             >
-              <option value="member">Member</option>
-              <option value="librarian">Librarian</option>
-              <option value="manager">Manager</option>
+              <option value="member">📚 Member</option>
+              <option value="librarian">👨‍💼 Librarian</option>
+              <option value="manager">👩‍💼 Manager</option>
             </select>
           </div>
 
@@ -153,7 +155,7 @@ const Register = () => {
           </div>
 
           <div className="address-section">
-            <h4 className="address-title">Address (Optional)</h4>
+            <h4 className="address-title">📍 Address (Optional)</h4>
             
             <div className="form-row">
               <input
@@ -191,7 +193,7 @@ const Register = () => {
             className="register-button"
             disabled={isLoading}
           >
-            {isLoading ? "Creating Account..." : "Register"}
+            {isLoading ? "Creating Account..." : "🚀 Create Account"}
           </button>
           
           <div className="login-link-section">
@@ -210,4 +212,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default RegisterPage;
