@@ -3,8 +3,28 @@
 const Loan = require("../models/loan");
 
 const getAllLoans = async (req, res) => {
+  const { status, search, page = 1, limit = 10 } = req.query;
+  const query = {};
+
+  if (status) {
+    query.status = status;
+  }
+
+  if (search) {
+    query.$or = [
+      { "user.name": { $regex: search, $options: "i" } },
+      { "user.email": { $regex: search, $options: "i" } },
+      { "book.title": { $regex: search, $options: "i" } },
+    ];
+  }
+
   try {
-    const loans = await Loan.find().populate("user").populate("book");
+    const loans = await Loan.find(query)
+      .populate("user")
+      .populate("book")
+      .skip((page - 1) * limit)
+      .limit(limit);
+
     res.status(200).json(loans);
   } catch (error) {
     res.status(500).json({ message: error.message });

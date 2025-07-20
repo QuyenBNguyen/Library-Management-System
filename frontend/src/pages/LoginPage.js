@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; // ✅ import useNavigate
 import axios from "axios";
 import "../styles/login.css";
-import logo from "../images/bookworm-logo-dark.svg";
 
-const Login = () => {
+const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -45,8 +44,14 @@ const Login = () => {
 
   return (
     <div className="login-page">
-      <div className="login-box">
-        <img src={logo} alt="Logo" className="login-logo" />
+      <div className="login-box mt-24">
+        <div className="flex justify-center items-center">
+          <img
+            src={"http://localhost:3000/images/bookworm-logo-dark.svg"}
+            alt="Logo"
+            className="login-logo"
+          />
+        </div>
 
         <form className="login-form" onSubmit={handleLogin}>
           {error && <div className="error-text">{error}</div>}
@@ -93,4 +98,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginPage;

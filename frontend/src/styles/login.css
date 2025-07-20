@@ -1,6 +1,6 @@
 .login-page {
   background: #543512;
-  height: 100vh;
+  /* height: 100vh; */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -46,7 +46,7 @@
 
 .login-button:hover {
   background-color: #543512;
-  color: #ccc
+  color: #ccc;
 }
 
 .error-text {

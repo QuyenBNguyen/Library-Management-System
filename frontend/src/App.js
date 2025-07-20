@@ -16,6 +16,7 @@ import VNPayReturn from "./pages/VNPayReturn";
 import LibrarianDashboardPage from "./pages/Librarian/LibrarianDashboardPage";
 import LoanManagmentPage from "./pages/Librarian/LoanManagmentPage";
 import PaymentHistoryPage from "./pages/Librarian/PaymentHistoryPage";
+import LoginPage from "./pages/LoginPage";
 
 // Trang giả cho các link chưa làm
 const PlaceholderPage = ({ title }) => (
@@ -33,6 +34,14 @@ function App() {
           element={
             <Layout>
               <HomePage />
+            </Layout>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <Layout>
+              <LoginPage />
             </Layout>
           }
         />

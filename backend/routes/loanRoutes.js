@@ -10,7 +10,11 @@ router.post(
 ); // tạo yêu cầu mượn sách
 
 router.get("/my", roleMiddleware(["member"]), loanController.getMyLoans); // lấy tất cả loán của một người
-router.get("/", roleMiddleware(["librarian"]), loanController.getAllLoans); // lấy tất cả loans for librarian and manager
+router.get(
+  "/",
+  // roleMiddleware(["librarian"]),
+  loanController.getAllLoans
+); // lấy tất cả loans for librarian and manager
 
 // router.put("/return", roleMiddleware(["member"]), loanController.returnBook); // trả một hoặc nhiều sách
 
