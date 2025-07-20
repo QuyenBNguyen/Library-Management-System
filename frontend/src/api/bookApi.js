@@ -1,7 +1,7 @@
 import axiosClient from "./axiosClient";
 
 const bookApi = {
-  getAll: () => axiosClient.get("/books"),
+  getAll: (params) => axiosClient.get("/books", { params }),
   getById: (id) => axiosClient.get(`/books/${id}`),
   create: (data) => axiosClient.post("/books", data),
   update: (id, data) => axiosClient.put(`/books/${id}`, data),
