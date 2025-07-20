@@ -40,5 +40,8 @@
     "start": "react-scripts start",
     "test": "react-scripts test"
   },
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
 }

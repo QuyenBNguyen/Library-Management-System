@@ -51,6 +51,7 @@ app.use(express.json());
 
 // Serve static files
 app.use(express.static(path.join(__dirname, "public")));
+app.use("/uploads", express.static("uploads"));
 
 // Serve login page as root
 app.get("/", (req, res) => {

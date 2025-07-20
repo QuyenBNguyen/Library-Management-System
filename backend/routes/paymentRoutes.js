@@ -19,13 +19,13 @@ router.get(
 router.get(
   "/user/:id",
   authMiddleware,
-  roleMiddleware(["librarian", "manager"]),
+  roleMiddleware(["librarian"]),
   paymentController.getAllPaymentsByUser
 );
 router.post(
   "/",
   authMiddleware,
-  roleMiddleware(["member"]),
+  roleMiddleware(["member", "librarian"]),
   paymentController.createPaymentUrl
 );
 router.get("/ipn", paymentController.getVNPayIpn);

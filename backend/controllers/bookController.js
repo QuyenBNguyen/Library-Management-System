@@ -3,9 +3,49 @@ const mongoose = require("mongoose");
 
 // get all books
 const getAllBooks = async (req, res) => {
+  const {
+    search = "",
+    page = 1,
+    limit = 10,
+    author,
+    status,
+    publisher,
+    genre,
+  } = req.query;
+
+  const query = {
+    title: { $regex: search, $options: "i" },
+  };
+
+  if (author) {
+    query.author = { $regex: author, $options: "i" };
+  }
+
+  if (status) {
+    query.status = { $regex: status, $options: "i" };
+  }
+
+  if (publisher) {
+    query.publisher = { $regex: publisher, $options: "i" };
+  }
+
+  if (genre) {
+    query.genre = { $regex: genre, $options: "i" };
+  }
+
   try {
-    const books = await Book.find();
-    res.status(200).json(books);
+    const total = await Book.countDocuments(query);
+
+    const books = await Book.find(query)
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    return res.status(200).json({
+      data: books,
+      total,
+      page: Number(page),
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -15,6 +55,11 @@ const getAllBooks = async (req, res) => {
 const createBook = async (req, res) => {
   const { ISBN, title, genre, author, publishedDate, publisher, status } =
     req.body;
+
+  const imageUrl = req.file
+    ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
+    : null;
+
   // Validate required fields
   if (!ISBN || !title || !author) {
     return res
@@ -26,6 +71,7 @@ const createBook = async (req, res) => {
     const book = new Book({
       ISBN,
       title,
+      imageUrl,
       genre,
       author,
       publishedDate,

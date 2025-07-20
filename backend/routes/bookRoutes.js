@@ -1,5 +1,5 @@
 const express = require("express");
-const authMiddleware = require("../middleware/authMiddleware");
+const upload = require("../config/uploadConfig");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
 // Import all book controllers here
@@ -15,16 +15,29 @@ const router = express.Router();
 
 router.get("/", roleMiddleware(["librarian", "member"]), getAllBooks);
 
-router.post("/", roleMiddleware(["librarian", "manager"]), createBook);
+router.post(
+  "/",
+  // roleMiddleware(["librarian"]),
+  upload.single("image"),
+  createBook
+);
 
 router.get(
   "/:id",
-  roleMiddleware(["librarian", "member", "manager"]),
+  // roleMiddleware(["librarian", "member"]),
   getBookById
 );
 
-router.put("/:id", roleMiddleware(["librarian", "manager"]), updateBookById);
+router.put(
+  "/:id",
+  // roleMiddleware(["librarian"]),
+  updateBookById
+);
 
-router.delete("/:id", roleMiddleware(["librarian", "manager"]), deleteBookById);
+router.delete(
+  "/:id",
+  // roleMiddleware(["librarian"]),
+  deleteBookById
+);
 
 module.exports = router;
