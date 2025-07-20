@@ -13,25 +13,18 @@ const {
 
 const router = express.Router();
 
-router.get("/", 
-  authMiddleware,roleMiddleware(['librarian','member']),
-  getAllBooks);
+router.get("/", roleMiddleware(["librarian", "member"]), getAllBooks);
 
-router.post("/", 
-  authMiddleware,roleMiddleware(['librarian']),
-  createBook);
+router.post("/", roleMiddleware(["librarian", "manager"]), createBook);
 
-router.get("/:id", 
-  authMiddleware,roleMiddleware(['librarian','member']), 
-  getBookById);
+router.get(
+  "/:id",
+  roleMiddleware(["librarian", "member", "manager"]),
+  getBookById
+);
 
-router.put("/:id", 
-  authMiddleware,roleMiddleware(['librarian']),
-  updateBookById);
+router.put("/:id", roleMiddleware(["librarian", "manager"]), updateBookById);
 
-router.delete("/:id", 
-  authMiddleware,roleMiddleware(['librarian']),
-  deleteBookById);
+router.delete("/:id", roleMiddleware(["librarian", "manager"]), deleteBookById);
 
-// Export the router
 module.exports = router;

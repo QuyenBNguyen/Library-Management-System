@@ -1,10 +1,35 @@
 const express = require("express");
 const router = express.Router();
 const paymentController = require("../controllers/paymentController");
+const authMiddleware = require("../middleware/authMiddleware");
 
-router.get("/form", paymentController.renderForm); // Hiển thị form đơn hàng
-router.post("/create", paymentController.createPayment); // Tạo URL và redirect
-router.get("/return", paymentController.handleReturn); // Xử lý kết quả VNPay
-router.get("/ipn", paymentController.handleIPN); // Xử lý IPN từ VNPay
+router.get(
+  "/",
+  authMiddleware,
+  roleMiddleware(["librarian", "manager"]),
+  paymentController.getAllPayments
+);
+router.get(
+  "/my",
+  authMiddleware,
+  roleMiddleware(["member"]),
+  paymentController.getMyPayments
+);
+router.get(
+  "/user/:id",
+  authMiddleware,
+  roleMiddleware(["librarian", "manager"]),
+  paymentController.getAllPaymentsByUser
+);
+router.post(
+  "/",
+  authMiddleware,
+  roleMiddleware(["member"]),
+  paymentController.createPaymentUrl
+);
+router.get("/ipn", paymentController.getVNPayIpn);
+router.get("/vnpay_return", paymentController.vnpayReturn); // thay thế ipn vì chạy local
+router.post("/querydr", authMiddleware, paymentController.queryDr);
+router.post("/refund", authMiddleware, paymentController.refund);
 
 module.exports = router;

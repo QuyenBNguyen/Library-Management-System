@@ -16,7 +16,7 @@ const createBook = async (req, res) => {
   const { ISBN, title, genre, author, publishedDate, publisher, status } =
     req.body;
   // Validate required fields
-  if (!ISBN || !title || !author || !status) {
+  if (!ISBN || !title || !author) {
     return res
       .status(400)
       .json({ message: "ISBN, title, author, and status are required." });
