@@ -18,6 +18,8 @@ import LoanManagmentPage from "./pages/Librarian/LoanManagmentPage";
 import PaymentHistoryPage from "./pages/Librarian/PaymentHistoryPage";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
+import BorrowHistoryPage from "./pages/BorrowHistoryPage";
 
 // Trang giả cho các link chưa làm
 const PlaceholderPage = ({ title }) => (
@@ -99,8 +101,24 @@ function App() {
             </Layout>
           }
         />
-      </Routes>
-    </BrowserRouter>
+        <Route
+          path="/change-password"
+          element={
+            <Layout>
+              <ChangePasswordPage />
+            </Layout>
+          }
+        />
+        <Route
+          path="/borrow-history"
+          element={
+            <Layout>
+              <BorrowHistoryPage />
+            </Layout>
+          }
+        />
+        </Routes>
+      </BrowserRouter>
   );
 }
 

@@ -14,6 +14,7 @@ const userSchema = new Schema({
     street: { type: String},
     district: { type: String},
     city: { type: String},
+    avatar: { type: String, default: "" }, // <-- thêm dòng này
 });
 
 module.exports = mongoose.model('User', userSchema);

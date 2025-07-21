@@ -7,6 +7,7 @@ const bookRoutes = require("./routes/bookRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const loanRoutes = require("./routes/loanRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
+const avatarRoutes = require('./routes/avatarRoutes');
 
 // Load env vars
 dotenv.config();
@@ -51,7 +52,7 @@ app.use(express.json());
 
 // Serve static files
 app.use(express.static(path.join(__dirname, "public")));
-app.use("/uploads", express.static("uploads"));
+app.use('/uploads', express.static('uploads'));
 
 // Serve login page as root
 app.get("/", (req, res) => {
@@ -61,6 +62,7 @@ app.get("/", (req, res) => {
 // Mount routers
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/member", memberRoutes);
+app.use('/member/avatar', avatarRoutes);
 
 app.use("/api/books", authMiddleware, bookRoutes); // view, quản lý book
 app.use("/api/loans", authMiddleware, loanRoutes); // mượn trả sách + lịch sử

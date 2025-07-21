@@ -28,7 +28,7 @@ exports.register = async (req, res) => {
     console.log("User created:", user);
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { _id: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: '2h' }
     );
@@ -56,27 +56,52 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log("Login attempt:", email);
+    console.log("\n=== LOGIN ATTEMPT ===");
+    console.log("Email:", email);
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ error: 'Invalid credentials' });
-
-    console.log("User found:", user);
+    if (!user) {
+      console.log("❌ User not found");
+      return res.status(400).json({ error: 'Invalid credentials' });
+    }
+    console.log("✅ User found:", { _id: user._id, role: user.role });
 
     const match = await bcrypt.compare(password, user.password);
     console.log("Password match:", match);
 
-    if (!match) return res.status(400).json({ error: 'Invalid credentials' });
+    if (!match) {
+      console.log("❌ Password incorrect");
+      return res.status(400).json({ error: 'Invalid credentials' });
+    }
+
+    // Debug: Kiểm tra JWT_SECRET
+    console.log("JWT_SECRET exists:", !!process.env.JWT_SECRET);
+    console.log("JWT_SECRET length:", process.env.JWT_SECRET?.length);
+
+    const tokenPayload = { _id: user._id, role: user.role };
+    console.log("Token payload:", tokenPayload);
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      tokenPayload,
       process.env.JWT_SECRET,
       { expiresIn: '2h' }
     );
 
-    res.json({ token, user: { name: user.name, role: user.role, email: user.email } });
+    console.log("✅ Token created successfully");
+    console.log("Token preview:", token.substring(0, 20) + "...");
+    console.log("=== LOGIN SUCCESS ===\n");
+
+    res.json({ 
+      token, 
+      user: { 
+        _id: user._id,
+        name: user.name, 
+        role: user.role, 
+        email: user.email 
+      } 
+    });
   } catch (err) {
-    console.error("Login error:", err);  // See the real issue here
+    console.error("\n❌ Login error:", err);
     res.status(500).json({ error: 'Login failed' });
   }
 };

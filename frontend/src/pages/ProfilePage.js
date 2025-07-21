@@ -249,6 +249,17 @@ const ProfilePage = () => {
   const [editingField, setEditingField] = useState(null);
   const [fieldValue, setFieldValue] = useState("");
 
+  // Thêm state avatarFile, avatarPreview
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [isAvatarLoading, setIsAvatarLoading] = useState(false);
+  const [avatarToShow, setAvatarToShow] = useState(localStorage.getItem("lastAvatar") || "/images/avatar-placeholder.jpg");
+  const [oldAvatarUrl, setOldAvatarUrl] = useState("");
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [persistentAvatar, setPersistentAvatar] = useState(
+    localStorage.getItem("lastAvatar") || "/images/avatar-placeholder.jpg"
+  );
+
   // API base URL - backend runs on port 3000
   const API_BASE_URL = "http://localhost:5000";
 
@@ -260,6 +271,7 @@ const ProfilePage = () => {
   // Fetch profile data from API
   const fetchProfile = async () => {
     try {
+      setLoadingProfile(true);
       setLoading(true);
       setError(null);
       const token = getAuthToken();
@@ -292,14 +304,26 @@ const ProfilePage = () => {
          
           joinDate: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : "",
           address: `${userData.street || ""}, ${userData.district || ""}, ${userData.city || ""}`.trim(),
-          avatar: "/images/avatar-placeholder.jpg",
+          avatar: userData.avatar ||"",
           street: userData.street || "",
           district: userData.district || "",
           city: userData.city || ""
         };
         
-        setProfileData(profileInfo);
-        setFormData(profileInfo);
+        const avatarUrl =
+          (profileInfo.avatar && profileInfo.avatar.startsWith("http")) ?
+            profileInfo.avatar :
+            (localStorage.getItem("lastAvatar") || "/images/avatar-placeholder.jpg");
+        setProfileData({ ...profileInfo, avatar: avatarUrl });
+        setFormData({ ...profileInfo, avatar: avatarUrl });
+        setAvatarPreview(""); // reset preview khi đã có avatar mới
+        setPersistentAvatar(avatarUrl);
+        setAvatarToShow(avatarUrl);
+        // Chỉ update localStorage nếu là URL Cloudinary
+        if (avatarUrl.startsWith("http")) {
+          localStorage.setItem("lastAvatar", avatarUrl);
+        }
+        setLoadingProfile(false);
         console.log('Profile data:', profileInfo);
       }
     } catch (error) {
@@ -335,6 +359,8 @@ const ProfilePage = () => {
     window.location.href = '/';
   };
 
+  
+
   // Khi nhấn Edit chung
   const handleEdit = () => {
     setIsEditing(true);
@@ -342,8 +368,18 @@ const ProfilePage = () => {
     setError(null);
   };
 
-  // Khi nhấn Done
+  // Khi chọn file avatar
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+    }
+  };
+
+  // Khi nhấn Done, upload avatar nếu có file mới
   const handleSave = async () => {
+    setOldAvatarUrl(profileData.avatar);
     try {
       setLoading(true);
       setError(null);
@@ -364,6 +400,28 @@ const ProfilePage = () => {
           return;
         }
       }
+      let avatarUrl = profileData.avatar;
+      if (avatarFile) {
+        const formData = new FormData();
+        formData.append('avatar', avatarFile);
+        try {
+          const res = await axios.post(`${API_BASE_URL}/member/avatar/upload`, formData, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+          if (res.data.success) {
+            avatarUrl = res.data.avatar + '?v=' + Date.now();
+            setIsAvatarLoading(true);
+            setAvatarPreview(avatarUrl);
+            setAvatarToShow(avatarUrl);
+          }
+        } catch (err) {
+          setError('Failed to upload avatar');
+          return;
+        }
+      }
       // Chuẩn bị dữ liệu update
       const updateData = {
         name: formData.name,
@@ -371,8 +429,17 @@ const ProfilePage = () => {
         phone: formData.phone,
         street: formData.street,
         district: formData.district,
-        city: formData.city
+        city: formData.city,
+        avatar: avatarUrl
       };
+      // Nếu là address thì tách lại thành street, district, city
+      if (fieldValue === "address") {
+        const [street, district, city] = fieldValue.split(",").map(s => s.trim());
+        updateData.street = street || "";
+        updateData.district = district || "";
+        updateData.city = city || "";
+        delete updateData.address;
+      }
       const response = await axios.put(`${API_BASE_URL}/member/profile/me`, updateData, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -380,8 +447,14 @@ const ProfilePage = () => {
         }
       });
       if (response.data.success) {
-        setProfileData(prev => ({ ...prev, ...updateData, address: `${formData.street}, ${formData.district}, ${formData.city}`.trim() }));
         setIsEditing(false);
+        setAvatarFile(null);
+        if (avatarUrl !== oldAvatarUrl) {
+          setAvatarPreview("");
+        }
+        setIsAvatarLoading(false);
+        // Gọi lại fetchProfile để lấy dữ liệu mới nhất từ backend
+        fetchProfile();
       }
     } catch (error) {
       setError(error.response?.data?.error || "Failed to update profile");
@@ -514,19 +587,54 @@ const ProfilePage = () => {
           <div className="profile-container">
             <div className="profile-card">
               <div className="profile-header">
-                <div className="profile-avatar">
-                  <img 
-                    src={profileData.avatar} 
-                    alt="Profile Avatar"
-                    onError={(e) => {
-                      e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='35' r='25' fill='%23667eea'/%3E%3Cpath d='M15 85c0-19.33 15.67-35 35-35s35 15.67 35 35H15z' fill='%23667eea'/%3E%3C/svg%3E";
-                    }}
-                  />
+                <div className="profile-avatar" style={{ position: 'relative' }}>
+                  {loadingProfile ? (
+                    <div style={{ width: 96, height: 96, borderRadius: '50%', background: '#eee' }} />
+                  ) : (
+                    <img
+                      src={loadingProfile ? (localStorage.getItem("lastAvatar") || "/images/avatar-placeholder.jpg") : (avatarPreview || avatarToShow || "/images/avatar-placeholder.jpg")}
+                      alt="Profile Avatar"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                      onError={(e) => { e.target.src = "/images/avatar-placeholder.jpg"; }}
+                      onLoad={() => {
+                        if (isAvatarLoading) {
+                          setAvatarPreview("");
+                          setIsAvatarLoading(false);
+                        }
+                      }}
+                    />
+                  )}
+                  {isEditing && (
+                    <label htmlFor="avatar-upload" style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      right: 0,
+                      background: '#fff',
+                      borderRadius: '50%',
+                      width: 36,
+                      height: 36,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 8px #aaa',
+                      cursor: 'pointer',
+                      border: '2px solid #e1bb80'
+                    }}>
+                      <span className="material-icons" style={{ color: '#83552d', fontSize: 20 }}>edit</span>
+                      <input
+                        id="avatar-upload"
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={handleAvatarChange}
+                      />
+                    </label>
+                  )}
                 </div>
                 <div className="profile-info">
                   <h2>{profileData.name || "User Name"}</h2>
                   <p className="profile-role">{profileData.role || "Member"}</p>
-                  {/* <p className="profile-id">ID: {profileData.id || "N/A"}</p> */}
+                 
                 </div>
               </div>
 
