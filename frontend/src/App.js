@@ -22,7 +22,7 @@ import ProfilePage from "./pages/ProfilePage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import BorrowHistoryPage from "./pages/BorrowHistoryPage";
 import RegisterPage from './pages/RegisterPage';
-import DashboaPage from './pages/DashboardPage';
+import DashboardPage from './pages/DashboardPage';
 
 // Trang giả cho các link chưa làm
 const PlaceholderPage = ({ title }) => (
@@ -43,14 +43,7 @@ function App() {
             </Layout>
           }
         />
-        <Route
-          path="/login"
-          element={
-            <Layout>
-              <LoginPage />
-            </Layout>
-          }
-        />
+        <Route path="/login" element={<LoginPage />}/>
         <Route path="/register" element={<RegisterPage/>} />
         <Route path="/dashboard/*" element={<DashboardPage/>} />
         <Route

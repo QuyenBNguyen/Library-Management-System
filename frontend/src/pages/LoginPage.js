@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; // ✅ import useNavigate
 import axios from "axios";
+import logo from "../images/bookworm-logo-dark.svg";
 import "../styles/login.css";
 
 const LoginPage = () => {

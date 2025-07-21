@@ -70,7 +70,7 @@
   transition: border 0.2s;
 }
 .login-input:focus {
-  border: 1.5px solid #83552d;
+  border: 1.5px solid #111;
   outline: none;
 }
 
@@ -87,7 +87,7 @@
   transition: background 0.2s, color 0.2s;
 }
 .login-button:hover {
-  background-color: #83552d;
+  background-color: #333;
   color: #fff;
 }
 
@@ -106,7 +106,7 @@
 
 .forgot-link {
   font-size: 0.95rem;
-  color: #83552d;
+  color: #111;
   text-decoration: none;
   transition: color 0.2s;
 }
