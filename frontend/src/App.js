@@ -17,6 +17,7 @@ import LibrarianDashboardPage from "./pages/Librarian/LibrarianDashboardPage";
 import LoanManagmentPage from "./pages/Librarian/LoanManagmentPage";
 import PaymentHistoryPage from "./pages/Librarian/PaymentHistoryPage";
 import LoginPage from "./pages/LoginPage";
+import ProfilePage from "./pages/ProfilePage";
 
 // Trang giả cho các link chưa làm
 const PlaceholderPage = ({ title }) => (
@@ -94,7 +95,7 @@ function App() {
           path="/profile"
           element={
             <Layout>
-              <PlaceholderPage title="User Profile" />
+              <ProfilePage />
             </Layout>
           }
         />

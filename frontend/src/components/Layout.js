@@ -1,7 +1,7 @@
 // File: frontend/src/components/Layout.js
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const styles = {
   body: {
@@ -60,6 +60,16 @@ const styles = {
 };
 
 const Layout = ({ children }) => {
+  const navigate = useNavigate();
+  const isLoggedIn = Boolean(localStorage.getItem("token"));
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/");
+    window.location.reload();
+  };
+
   return (
     <div style={styles.body}>
       <header style={styles.header}>
@@ -83,30 +93,45 @@ const Layout = ({ children }) => {
           >
             Catalog
           </Link>
-          <Link
-            to="/profile"
-            style={styles.link}
-            onMouseOver={(e) => (e.target.style.color = "#f5e6c9")}
-            onMouseOut={(e) => (e.target.style.color = "#e1bb80")}
-          >
-            Profile
-          </Link>
-          <Link
-            to="/login"
-            style={styles.link}
-            onMouseOver={(e) => (e.target.style.color = "#f5e6c9")}
-            onMouseOut={(e) => (e.target.style.color = "#e1bb80")}
-          >
-            Login
-          </Link>
-          <Link
-            to="/register"
-            style={styles.link}
-            onMouseOver={(e) => (e.target.style.color = "#f5e6c9")}
-            onMouseOut={(e) => (e.target.style.color = "#e1bb80")}
-          >
-            Register
-          </Link>
+          {isLoggedIn ? (
+            <>
+              <Link
+                to="/profile"
+                style={styles.link}
+                onMouseOver={(e) => (e.target.style.color = "#f5e6c9")}
+                onMouseOut={(e) => (e.target.style.color = "#e1bb80")}
+              >
+                Profile
+              </Link>
+              <span
+                style={{ ...styles.link, cursor: "pointer" }}
+                onClick={handleLogout}
+                onMouseOver={(e) => (e.target.style.color = "#f5e6c9")}
+                onMouseOut={(e) => (e.target.style.color = "#e1bb80")}
+              >
+                Logout
+              </span>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                style={styles.link}
+                onMouseOver={(e) => (e.target.style.color = "#f5e6c9")}
+                onMouseOut={(e) => (e.target.style.color = "#e1bb80")}
+              >
+                Login
+              </Link>
+              <Link
+                to="/register"
+                style={styles.link}
+                onMouseOver={(e) => (e.target.style.color = "#f5e6c9")}
+                onMouseOut={(e) => (e.target.style.color = "#e1bb80")}
+              >
+                Register
+              </Link>
+            </>
+          )}
         </nav>
       </header>
       <main style={styles.content}>{children}</main>
