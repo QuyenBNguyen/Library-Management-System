@@ -8,6 +8,10 @@ import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import BookListPage from './pages/BookListPage';
 import BookDetailPage from './pages/BookDetailPage'; // IMPORT TRANG MỚI
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import DashboardPage from './pages/DashboardPage';
+// import UserManagement from './pages/UserManagement'; // Remove direct import
 
 // Trang giả cho các link chưa làm
 const PlaceholderPage = ({ title }) => (
@@ -22,12 +26,14 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout><HomePage /></Layout>} />
         <Route path="/catalog" element={<Layout><BookListPage /></Layout>} />
-        
         {/* THÊM ROUTE ĐỘNG CHO TRANG CHI TIẾT SÁCH */}
         <Route path="/books/:bookId" element={<Layout><BookDetailPage /></Layout>} />
-
         {/* Các route còn lại trên menu */}
         <Route path="/profile" element={<Layout><PlaceholderPage title="User Profile" /></Layout>} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage/>} />
+        {/* NESTED DASHBOARD ROUTING */}
+        <Route path="/dashboard/*" element={<DashboardPage/>} />
       </Routes>
     </BrowserRouter>
   );
