@@ -4,6 +4,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // Import các component và trang
+
 import Layout from "./components/Layout";
 import LibrarianLayout from "./layouts/LibrarianLayout";
 import HomePage from "./pages/HomePage";
@@ -17,6 +18,11 @@ import LibrarianDashboardPage from "./pages/Librarian/LibrarianDashboardPage";
 import LoanManagmentPage from "./pages/Librarian/LoanManagmentPage";
 import PaymentHistoryPage from "./pages/Librarian/PaymentHistoryPage";
 import LoginPage from "./pages/LoginPage";
+import ProfilePage from "./pages/ProfilePage";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
+import BorrowHistoryPage from "./pages/BorrowHistoryPage";
+import RegisterPage from './pages/RegisterPage';
+import DashboardPage from './pages/DashboardPage';
 
 // Trang giả cho các link chưa làm
 const PlaceholderPage = ({ title }) => (
@@ -37,14 +43,9 @@ function App() {
             </Layout>
           }
         />
-        <Route
-          path="/login"
-          element={
-            <Layout>
-              <LoginPage />
-            </Layout>
-          }
-        />
+        <Route path="/login" element={<LoginPage />}/>
+        <Route path="/register" element={<RegisterPage/>} />
+        <Route path="/dashboard/*" element={<DashboardPage/>} />
         <Route
           path="/catalog"
           element={
@@ -94,12 +95,29 @@ function App() {
           path="/profile"
           element={
             <Layout>
-              <PlaceholderPage title="User Profile" />
+              <ProfilePage />
             </Layout>
           }
         />
-      </Routes>
-    </BrowserRouter>
+        <Route
+          path="/change-password"
+          element={
+            <Layout>
+              <ChangePasswordPage />
+            </Layout>
+          }
+        />
+        <Route
+          path="/borrow-history"
+          element={
+            <Layout>
+              <BorrowHistoryPage />
+            </Layout>
+          }
+        />
+        </Routes>
+      </BrowserRouter>
+
   );
 }
 

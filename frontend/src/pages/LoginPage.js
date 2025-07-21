@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; // ✅ import useNavigate
 import axios from "axios";
+import logo from "../images/bookworm-logo-dark.svg";
 import "../styles/login.css";
 
 const LoginPage = () => {
@@ -43,16 +44,12 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-box mt-24">
-        <div className="flex justify-center items-center">
-          <img
-            src={"http://localhost:3000/images/bookworm-logo-dark.svg"}
-            alt="Logo"
-            className="login-logo"
-          />
-        </div>
 
+    <div className="login-split-page">
+      <div className="login-left-panel">
+        <img src={logo} alt="Logo" className="login-logo" />
+        <h2 className="login-title">Welcome Back !!</h2>
+        <p className="login-subtitle">Please enter your credentials to log in</p>
         <form className="login-form" onSubmit={handleLogin}>
           {error && <div className="error-text">{error}</div>}
 
@@ -60,7 +57,7 @@ const LoginPage = () => {
             className="login-input"
             type="email"
             name="email"
-            placeholder="Email"
+            placeholder="Username"
             value={formData.email}
             onChange={handleChange}
             required
@@ -83,16 +80,21 @@ const LoginPage = () => {
           </div>
 
           <button type="submit" className="login-button">
-            Login
-          </button>
-          <button
-            type="button"
-            className="register-button"
-            onClick={() => navigate("/register")} // ✅ use navigate here too
-          >
-            Register
+            SIGN IN
           </button>
         </form>
+      </div>
+      <div className="login-right-panel">
+        <img src={logo} alt="Logo" className="login-logo right-logo" />
+        <h1 className="brand-title">BookWorm</h1>
+        <div className="brand-subtitle">LIBRARY</div>
+        <div className="signup-prompt">New to our platform? Sign Up now.</div>
+        <button
+          className="signup-button"
+          onClick={() => navigate("/register")}
+        >
+          SIGN UP
+        </button>
       </div>
     </div>
   );

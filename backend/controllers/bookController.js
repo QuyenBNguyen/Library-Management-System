@@ -13,9 +13,22 @@ const getAllBooks = async (req, res) => {
     genre,
   } = req.query;
 
-  const query = {
-    title: { $regex: search, $options: "i" },
-  };
+  function normalizeIsbn(isbn) {
+    return (isbn || '').replace(/[-\s]/g, '').toUpperCase();
+  }
+
+  let query = {};
+  if (search) {
+    // If search looks like an ISBN (all digits or digits with dashes/spaces, length >= 10)
+    const norm = normalizeIsbn(search);
+    if (/^\d{9,13}$/.test(norm)) {
+      query.ISBN = norm;
+    } else {
+      query.title = { $regex: search, $options: "i" };
+    }
+  } else {
+    query.title = { $regex: search, $options: "i" };
+  }
 
   if (author) {
     query.author = { $regex: author, $options: "i" };
@@ -35,11 +48,9 @@ const getAllBooks = async (req, res) => {
 
   try {
     const total = await Book.countDocuments(query);
-
     const books = await Book.find(query)
       .skip((page - 1) * limit)
       .limit(Number(limit));
-
     return res.status(200).json({
       data: books,
       total,
@@ -53,18 +64,23 @@ const getAllBooks = async (req, res) => {
 
 // create a new book
 const createBook = async (req, res) => {
-  const { ISBN, title, genre, author, publishedDate, publisher, status } =
+  console.log('CREATE BOOK req.body:', req.body);
+  console.log('CREATE BOOK req.file:', req.file);
+  const { ISBN, title, genre, author, publishedDate, publisher, status, summary, imageUrl: imageUrlFromBody } =
     req.body;
 
-  const imageUrl = req.file
-    ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
-    : null;
+  let imageUrl = null;
+  if (req.file) {
+    imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+  } else if (imageUrlFromBody) {
+    imageUrl = imageUrlFromBody;
+  }
 
   // Validate required fields
-  if (!ISBN || !title || !author) {
+  if (!ISBN || !title || !author || !genre || !status) {
     return res
       .status(400)
-      .json({ message: "ISBN, title, author, and status are required." });
+      .json({ message: "ISBN, title, author, genre, and status are required." });
   }
 
   try {
@@ -77,11 +93,13 @@ const createBook = async (req, res) => {
       publishedDate,
       publisher,
       status, // just assign the string
+      summary
     });
 
     const newBook = await book.save();
     res.status(201).json(newBook);
   } catch (err) {
+    console.error('CREATE BOOK ERROR:', err);
     res.status(400).json({ message: err.message });
   }
 };
@@ -108,7 +126,7 @@ const getBookById = async (req, res) => {
 // update a book by ID
 const updateBookById = async (req, res) => {
   const { id } = req.params;
-  const { ISBN, title, genre, author, publishedDate, publisher, status } =
+  const { ISBN, title, genre, author, publishedDate, publisher, status, summary, imageUrl: imageUrlFromBody } =
     req.body;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -128,6 +146,12 @@ const updateBookById = async (req, res) => {
     book.publishedDate = publishedDate;
     book.publisher = publisher;
     book.status = status;
+    book.summary = summary;
+    if (req.file) {
+      book.imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+    } else if (imageUrlFromBody) {
+      book.imageUrl = imageUrlFromBody;
+    }
 
     const updatedBook = await book.save();
     res.status(200).json(updatedBook);

@@ -201,3 +201,81 @@ exports.updateMemberProfile = async (req, res) => {
     });
   }
 };
+
+// @desc    Change password
+// @route   PUT /member/change-password
+exports.changePassword = async (req, res) => {
+  try {
+    console.log('Change password request received');
+    const { currentPassword, newPassword } = req.body;
+    console.log('Request body:', { currentPassword: '***', newPassword: '***' });
+    console.log('User ID from token:', req.user._id);
+    
+    // Validate input
+    if (!currentPassword || !newPassword) {
+      console.log('Missing required fields');
+      return res.status(400).json({
+        success: false,
+        error: 'Current password and new password are required'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      console.log('New password too short');
+      return res.status(400).json({
+        success: false,
+        error: 'New password must be at least 6 characters long'
+      });
+    }
+
+    // Check if new password is different from current password
+    if (currentPassword === newPassword) {
+      console.log('New password is same as current password');
+      return res.status(400).json({
+        success: false,
+        error: 'New password must be different from current password'
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      console.log('User not found:', req.user._id);
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Verify current password
+    const bcrypt = require('bcryptjs');
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    
+    if (!isCurrentPasswordValid) {
+      console.log('Current password is incorrect');
+      return res.status(400).json({
+        success: false,
+        error: 'Current password is incorrect'
+      });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update password
+    user.password = hashedNewPassword;
+    await user.save();
+    console.log('Password updated successfully for user:', user._id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error. Please try again later.'
+    });
+  }
+};
