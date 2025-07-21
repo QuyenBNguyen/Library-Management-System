@@ -5,20 +5,46 @@ const Loan = require("../models/loan");
 const request = require("request");
 const vnpayConfig = require("../config/vnpayConfig");
 
-const getAllPayments = (req, res, next) => {
-  const payments = Payment.find().populate("user").populate("book");
-  res.status(200).json(payments);
+const getAllPayments = async (req, res, next) => {
+  console.log("getAllPayments");
+  const { status, search, page = 1, limit = 10 } = req.query;
+  const query = {};
+
+  if (status) {
+    query.status = status;
+  }
+
+  if (search) {
+    query.$or = [
+      { "user.name": { $regex: search, $options: "i" } },
+      { "user.email": { $regex: search, $options: "i" } },
+      { "loans.book.title": { $regex: search, $options: "i" } },
+    ];
+  }
+
+  try {
+    const payments = await Payment.find(query)
+      .populate("user")
+      .populate("loans")
+      .populate("loans.book")
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.status(200).json(payments);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-const getMyPayments = (req, res, next) => {
-  const payments = Payment.find({ user: req.user._id })
+const getMyPayments = async (req, res, next) => {
+  const payments = await Payment.find({ user: req.user._id })
     .populate("user")
     .populate("book");
   res.status(200).json(payments);
 };
 
-const getAllPaymentsByUser = (req, res, next) => {
-  const payments = Payment.find({ user: req.params.id })
+const getAllPaymentsByUser = async (req, res, next) => {
+  const payments = await Payment.find({ user: req.params.id })
     .populate("user")
     .populate("book");
   res.status(200).json(payments);
@@ -495,7 +521,7 @@ const refund = (req, res, next) => {
       res.redirect(redirectUrl);
     }
   );
-}; 
+};
 
 function sortObject(obj) {
   let sorted = {};

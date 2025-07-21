@@ -64,7 +64,7 @@ app.use("/member", memberRoutes);
 
 app.use("/api/books", authMiddleware, bookRoutes); // view, quản lý book
 app.use("/api/loans", authMiddleware, loanRoutes); // mượn trả sách + lịch sử
-app.use("/api/payment", paymentRoutes); // thanh toán
+app.use("/api/payments", paymentRoutes); // thanh toán
 
 const PORT = process.env.PORT || 5000;
 

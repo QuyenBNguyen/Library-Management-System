@@ -7,7 +7,7 @@ const roleMiddleware = require("../middleware/roleMiddleware");
 router.get(
   "/",
   authMiddleware,
-  roleMiddleware(["librarian", "manager"]),
+  // roleMiddleware(["librarian", "manager"]),
   paymentController.getAllPayments
 );
 router.get(
