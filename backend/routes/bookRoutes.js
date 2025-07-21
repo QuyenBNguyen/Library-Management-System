@@ -31,6 +31,7 @@ router.get(
 router.put(
   "/:id",
   // roleMiddleware(["librarian"]),
+  upload.single("image"),
   updateBookById
 );
 

@@ -43,7 +43,7 @@ module.exports = async function (req, res, next) {
 
 
     // Fetch user from DB to get latest role
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded._id);
     if (!user) return res.status(401).json({ error: 'User not found' });
 
     req.user = { _id: user._id, role: user.role };

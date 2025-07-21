@@ -4,49 +4,19 @@ import axios from "axios";
 const BorrowBookModal = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [availableBooks, setAvailableBooks] = useState([]);
+  const [isbnInput, setIsbnInput] = useState("");
+  const [foundBook, setFoundBook] = useState(null);
   const [selectedBooks, setSelectedBooks] = useState([]);
   const [dueDate, setDueDate] = useState("");
+  const [memberSearch, setMemberSearch] = useState("");
+  const [memberResults, setMemberResults] = useState([]);
+  const [selectedMember, setSelectedMember] = useState(null);
 
   const API_BASE_URL = "http://localhost:5000";
 
-  // Get auth token from localStorage
-  const getAuthToken = () => {
-    return localStorage.getItem('token');
-  };
+  const getAuthToken = () => localStorage.getItem('token');
 
-  // Fetch available books
-  const fetchAvailableBooks = async () => {
-    try {
-      const token = getAuthToken();
-      
-      if (!token) return;
-
-      const response = await axios.get(`${API_BASE_URL}/books`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.data) {
-        const available = response.data.filter(book => book.status === 'available');
-        setAvailableBooks(available);
-      }
-    } catch (error) {
-      console.error("Error fetching available books:", error);
-    }
-  };
-
-  // Load available books when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      fetchAvailableBooks();
-      setSelectedBooks([]);
-      setDueDate("");
-      setError(null);
-    }
-  }, [isOpen]);
+  const normalizeIsbn = (isbn) => (isbn || '').replace(/[-\s]/g, '').toUpperCase();
 
   // Set default due date (2 weeks from now)
   useEffect(() => {
@@ -55,54 +25,113 @@ const BorrowBookModal = ({ isOpen, onClose, onSuccess }) => {
       defaultDueDate.setDate(defaultDueDate.getDate() + 14);
       setDueDate(defaultDueDate.toISOString().split('T')[0]);
     }
+    if (isOpen) {
+      setIsbnInput("");
+      setFoundBook(null);
+      setSelectedBooks([]);
+      setError(null);
+      setMemberSearch("");
+      setMemberResults([]);
+      setSelectedMember(null);
+    }
   }, [isOpen, dueDate]);
 
-  const handleBookSelection = (bookId) => {
-    setSelectedBooks(prev => {
-      if (prev.includes(bookId)) {
-        return prev.filter(id => id !== bookId);
+  const handleMemberSearch = async () => {
+    setError(null);
+    setMemberResults([]);
+    setSelectedMember(null);
+    if (!memberSearch.trim()) return;
+    try {
+      const token = getAuthToken();
+      const res = await axios.get(`${API_BASE_URL}/users`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        params: { search: memberSearch.trim() }
+      });
+      setMemberResults(res.data.data || []);
+      if ((res.data.data || []).length === 0) setError("No members found.");
+    } catch (err) {
+      setError("Failed to search for member.");
+    }
+  };
+
+  const handleSelectMember = (member) => {
+    setSelectedMember(member);
+    setMemberResults([]);
+    setMemberSearch(member.name);
+    setError(null);
+  };
+
+  const handleIsbnSearch = async () => {
+    setError(null);
+    setFoundBook(null);
+    if (!isbnInput.trim()) return;
+    try {
+      const token = getAuthToken();
+      const res = await axios.get(`${API_BASE_URL}/api/books`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        params: { search: isbnInput.trim() }
+      });
+      const books = res.data.data || [];
+      // Find available book with normalized ISBN
+      const inputNorm = normalizeIsbn(isbnInput);
+      const book = books.find(b => normalizeIsbn(b.ISBN) === inputNorm && b.status === 'available');
+      if (book) {
+        setFoundBook(book);
       } else {
-        return [...prev, bookId];
+        setError("No available book found with this ISBN.");
       }
-    });
+    } catch (err) {
+      setError("Failed to search for book.");
+    }
+  };
+
+  const handleAddBook = () => {
+    if (foundBook && !selectedBooks.some(b => b._id === foundBook._id)) {
+      setSelectedBooks([...selectedBooks, foundBook]);
+      setFoundBook(null);
+      setIsbnInput("");
+      setError(null);
+    }
+  };
+
+  const handleRemoveBook = (id) => {
+    setSelectedBooks(selectedBooks.filter(b => b._id !== id));
   };
 
   const handleBorrow = async () => {
-    if (selectedBooks.length === 0) {
-      setError("Please select at least one book to borrow");
+    if (!selectedMember) {
+      setError("Please select a member to checkout for.");
       return;
     }
-
+    if (selectedBooks.length === 0) {
+      setError("Please add at least one book to borrow");
+      return;
+    }
     if (!dueDate) {
       setError("Please select a due date");
       return;
     }
-
     try {
       setLoading(true);
       setError(null);
-      
       const token = getAuthToken();
-      
       if (!token) {
         setError("No authentication token found. Please login again.");
         return;
       }
-
-      const response = await axios.post(`${API_BASE_URL}/borrow/borrow`, {
-        bookIds: selectedBooks,
-        dueDate: dueDate
+      const response = await axios.post(`${API_BASE_URL}/api/borrow/checkout`, {
+        bookIds: selectedBooks.map(b => b._id),
+        dueDate: dueDate,
+        memberId: selectedMember._id
       }, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
-
       if (response.data.success) {
         onSuccess(response.data.data);
         onClose();
-        
         // Show success notification
         const successNotification = document.createElement('div');
         successNotification.className = 'notification success';
@@ -118,8 +147,6 @@ const BorrowBookModal = ({ isOpen, onClose, onSuccess }) => {
           Books borrowed successfully!
         `;
         document.body.appendChild(successNotification);
-        
-        // Remove notification after 3 seconds
         setTimeout(() => {
           if (successNotification.parentNode) {
             successNotification.style.animation = 'fadeOut 0.3s ease-out';
@@ -132,7 +159,6 @@ const BorrowBookModal = ({ isOpen, onClose, onSuccess }) => {
         }, 3000);
       }
     } catch (error) {
-      console.error("Error borrowing books:", error);
       setError(error.response?.data?.error || "Failed to borrow books");
     } finally {
       setLoading(false);
@@ -153,7 +179,6 @@ const BorrowBookModal = ({ isOpen, onClose, onSuccess }) => {
             <span className="material-icons">close</span>
           </button>
         </div>
-
         <div className="modal-body">
           {error && (
             <div style={{ 
@@ -167,7 +192,43 @@ const BorrowBookModal = ({ isOpen, onClose, onSuccess }) => {
               {error}
             </div>
           )}
-
+          <div className="form-group">
+            <label>Member (search by name, email, or phone):</label>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+              <input
+                className="form-control"
+                type="text"
+                placeholder="Enter member name, email, or phone..."
+                value={memberSearch}
+                onChange={e => { setMemberSearch(e.target.value); setSelectedMember(null); }}
+                onKeyDown={e => { if (e.key === 'Enter') handleMemberSearch(); }}
+                disabled={loading}
+                style={{ flex: 1 }}
+              />
+              <button className="btn btn-primary" type="button" onClick={handleMemberSearch} disabled={loading || !memberSearch.trim()} style={{ minWidth: 80 }}>
+                Search
+              </button>
+            </div>
+            {memberResults.length > 0 && (
+              <div style={{ background: '#f5f5f5', borderRadius: 6, padding: 10, marginBottom: 8 }}>
+                {memberResults.map(m => (
+                  <div key={m._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 4, borderBottom: '1px solid #eee' }}>
+                    <div>
+                      <strong>{m.name}</strong> ({m.email}) {m.phone && <>- {m.phone}</>}
+                    </div>
+                    <button className="btn btn-secondary" type="button" onClick={() => handleSelectMember(m)} style={{ marginLeft: 12 }}>
+                      Select
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {selectedMember && (
+              <div style={{ background: '#e8f5e8', borderRadius: 6, padding: 10, marginBottom: 8 }}>
+                Selected: <strong>{selectedMember.name}</strong> ({selectedMember.email}) {selectedMember.phone && <>- {selectedMember.phone}</>}
+              </div>
+            )}
+          </div>
           <div className="form-group">
             <label>Due Date:</label>
             <input
@@ -178,49 +239,34 @@ const BorrowBookModal = ({ isOpen, onClose, onSuccess }) => {
               min={new Date().toISOString().split('T')[0]}
             />
           </div>
-
           <div className="form-group">
-            <label>Select Books to Borrow:</label>
-            <div style={{ 
-              maxHeight: '300px', 
-              overflowY: 'auto',
-              border: '1px solid #ddd',
-              borderRadius: '5px',
-              padding: '10px'
-            }}>
-              {availableBooks.length > 0 ? (
-                availableBooks.map((book) => (
-                  <div key={book._id} style={{ 
-                    display: 'flex', 
-                    alignItems: 'center',
-                    padding: '10px',
-                    borderBottom: '1px solid #eee',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => handleBookSelection(book._id)}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedBooks.includes(book._id)}
-                      onChange={() => handleBookSelection(book._id)}
-                      style={{ marginRight: '10px' }}
-                    />
-                    <div>
-                      <div style={{ fontWeight: 'bold' }}>{book.title}</div>
-                      <div style={{ fontSize: '12px', color: '#666' }}>
-                        {book.author} • {book.ISBN}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
-                  No available books found.
-                </div>
-              )}
+            <label>Search Book by ISBN:</label>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+              <input
+                className="form-control"
+                type="text"
+                placeholder="Enter ISBN..."
+                value={isbnInput}
+                onChange={e => setIsbnInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleIsbnSearch(); }}
+                disabled={loading}
+                style={{ flex: 1 }}
+              />
+              <button className="btn btn-primary" type="button" onClick={handleIsbnSearch} disabled={loading || !isbnInput.trim()} style={{ minWidth: 80 }}>
+                Search
+              </button>
             </div>
+            {foundBook && (
+              <div style={{ background: '#e8f5e8', borderRadius: 6, padding: 10, marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <strong>{foundBook.title}</strong> by {foundBook.author} (ISBN: {foundBook.ISBN})
+                </div>
+                <button className="btn btn-secondary" type="button" onClick={handleAddBook} style={{ marginLeft: 12 }}>
+                  Add
+                </button>
+              </div>
+            )}
           </div>
-
           {selectedBooks.length > 0 && (
             <div style={{ 
               padding: '10px', 
@@ -228,19 +274,37 @@ const BorrowBookModal = ({ isOpen, onClose, onSuccess }) => {
               borderRadius: '5px',
               marginTop: '10px'
             }}>
-              <strong>Selected Books ({selectedBooks.length}):</strong>
+              <strong>Books to Borrow ({selectedBooks.length}):</strong>
               <ul style={{ margin: '5px 0 0 20px' }}>
-                {selectedBooks.map(bookId => {
-                  const book = availableBooks.find(b => b._id === bookId);
-                  return book ? (
-                    <li key={bookId}>{book.title} by {book.author}</li>
-                  ) : null;
-                })}
+                {selectedBooks.map(book => (
+                  <li key={book._id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {book.title} by {book.author} (ISBN: {book.ISBN})
+                    <button
+                      className="btn btn-secondary"
+                      type="button"
+                      style={{
+                        padding: '0 18px',
+                        fontSize: 15,
+                        minWidth: 72,
+                        marginLeft: 8,
+                        whiteSpace: 'nowrap',
+                        height: 36,
+                        borderRadius: 8,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        lineHeight: '1'
+                      }}
+                      onClick={() => handleRemoveBook(book._id)}
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
               </ul>
             </div>
           )}
         </div>
-
         <div className="modal-footer">
           <button className="btn btn-secondary" onClick={onClose}>
             Cancel
@@ -248,7 +312,7 @@ const BorrowBookModal = ({ isOpen, onClose, onSuccess }) => {
           <button 
             className="btn btn-primary" 
             onClick={handleBorrow}
-            disabled={loading || selectedBooks.length === 0}
+            disabled={loading || selectedBooks.length === 0 || !selectedMember}
           >
             {loading ? "Borrowing..." : "Borrow Books"}
           </button>
