@@ -4,6 +4,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // Import các component và trang
+
 import Layout from "./components/Layout";
 import LibrarianLayout from "./layouts/LibrarianLayout";
 import HomePage from "./pages/HomePage";
@@ -20,6 +21,8 @@ import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import BorrowHistoryPage from "./pages/BorrowHistoryPage";
+import RegisterPage from './pages/RegisterPage';
+import DashboaPage from './pages/DashboardPage';
 
 // Trang giả cho các link chưa làm
 const PlaceholderPage = ({ title }) => (
@@ -48,6 +51,8 @@ function App() {
             </Layout>
           }
         />
+        <Route path="/register" element={<RegisterPage/>} />
+        <Route path="/dashboard/*" element={<DashboardPage/>} />
         <Route
           path="/catalog"
           element={
@@ -119,6 +124,7 @@ function App() {
         />
         </Routes>
       </BrowserRouter>
+
   );
 }
 

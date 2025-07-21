@@ -1,6 +1,12 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/user');
 
-module.exports = function (req, res, next) {
+
+module.exports = async function (req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer '))
+    return res.status(401).json({ error: 'No token provided' });
+
   try {
     console.log('\n=== AUTH MIDDLEWARE START ===');
     console.log('Request URL:', req.url);
@@ -34,20 +40,14 @@ module.exports = function (req, res, next) {
     console.log('✅ JWT_SECRET is configured, length:', process.env.JWT_SECRET.length);
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('✅ Token verified successfully');
-    console.log('Decoded token:', decoded);
-    
-    // Lấy id từ decoded token, hỗ trợ cả id và _id
-    const userId = decoded._id || decoded.id;
-    if (!userId) {
-      console.error('❌ No user ID in token');
-      return res.status(403).json({ error: 'Invalid token format - no user ID' });
-    }
 
-    console.log('✅ User ID extracted:', userId);
-    req.user = { _id: userId, role: decoded.role };
-    console.log('✅ User object set:', req.user);
-    console.log('=== AUTH MIDDLEWARE END ===\n');
+
+    // Fetch user from DB to get latest role
+    const user = await User.findById(decoded.id);
+    if (!user) return res.status(401).json({ error: 'User not found' });
+
+    req.user = { _id: user._id, role: user.role };
+
     next();
   } catch (error) {
     console.error('\n❌ Token verification failed:', error);
