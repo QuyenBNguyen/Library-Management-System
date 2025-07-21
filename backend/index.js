@@ -5,9 +5,9 @@ const path = require("path");
 const memberRoutes = require("./routes/memberRoutes");
 const bookRoutes = require("./routes/bookRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
-const borrowHistoryRoutes = require("./routes/borrowHistoryRoutes");
-const borrowRoutes = require("./routes/borrowRoutes");
+const loanRoutes = require("./routes/loanRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
+const avatarRoutes = require('./routes/avatarRoutes');
 
 // Load env vars
 dotenv.config();
@@ -32,12 +32,15 @@ const app = express();
 
 // CORS middleware
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', true);
-  
-  if (req.method === 'OPTIONS') {
+  res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.header("Access-Control-Allow-Credentials", true);
+
+  if (req.method === "OPTIONS") {
     res.sendStatus(200);
   } else {
     next();
@@ -49,6 +52,7 @@ app.use(express.json());
 
 // Serve static files
 app.use(express.static(path.join(__dirname, "public")));
+app.use('/uploads', express.static('uploads'));
 
 // Serve login page as root
 app.get("/", (req, res) => {
@@ -58,18 +62,11 @@ app.get("/", (req, res) => {
 // Mount routers
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/member", memberRoutes);
-app.use(
-  "/books",
-  //  authMiddleware,
-  bookRoutes
-);
-app.use(
-  "/api/payment",
-  // , authMiddleware
-  paymentRoutes
-);
-app.use("/borrow-history", borrowHistoryRoutes);
-app.use("/borrow", borrowRoutes);
+app.use('/member/avatar', avatarRoutes);
+
+app.use("/api/books", authMiddleware, bookRoutes); // view, quản lý book
+app.use("/api/loans", authMiddleware, loanRoutes); // mượn trả sách + lịch sử
+app.use("/api/payment", paymentRoutes); // thanh toán
 
 const PORT = process.env.PORT || 5000;
 

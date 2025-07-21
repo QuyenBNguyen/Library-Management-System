@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; // ✅ import useNavigate
 import axios from "axios";
 import "../styles/login.css";
-import logo from "../images/bookworm-logo-dark.svg";
 
-const Login = () => {
+const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -44,6 +43,7 @@ const Login = () => {
   };
 
   return (
+
     <div className="login-split-page">
       <div className="login-left-panel">
         <img src={logo} alt="Logo" className="login-logo" />
@@ -99,4 +99,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginPage;

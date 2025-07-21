@@ -1,5 +1,5 @@
 const express = require("express");
-const authMiddleware = require("../middleware/authMiddleware");
+const upload = require("../config/uploadConfig");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
 // Import all book controllers here
@@ -13,25 +13,31 @@ const {
 
 const router = express.Router();
 
-router.get("/", 
-  authMiddleware,roleMiddleware(['librarian','member']),
-  getAllBooks);
+router.get("/", roleMiddleware(["librarian", "member"]), getAllBooks);
 
-router.post("/", 
-  authMiddleware,roleMiddleware(['librarian']),
-  createBook);
+router.post(
+  "/",
+  // roleMiddleware(["librarian"]),
+  upload.single("image"),
+  createBook
+);
 
-router.get("/:id", 
-  authMiddleware,roleMiddleware(['librarian','member']), 
-  getBookById);
+router.get(
+  "/:id",
+  // roleMiddleware(["librarian", "member"]),
+  getBookById
+);
 
-router.put("/:id", 
-  authMiddleware,roleMiddleware(['librarian']),
-  updateBookById);
+router.put(
+  "/:id",
+  // roleMiddleware(["librarian"]),
+  updateBookById
+);
 
-router.delete("/:id", 
-  authMiddleware,roleMiddleware(['librarian']),
-  deleteBookById);
+router.delete(
+  "/:id",
+  // roleMiddleware(["librarian"]),
+  deleteBookById
+);
 
-// Export the router
 module.exports = router;
