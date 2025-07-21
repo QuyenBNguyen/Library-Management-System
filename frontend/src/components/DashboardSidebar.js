@@ -1,23 +1,25 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/dashboard.css";
 
 const menuItems = [
-  { label: "Dashboard", icon: "dashboard" },
-  { label: "Catalog", icon: "auto_stories" },
-  { label: "Books", icon: "menu_book" },
-  { label: "Users", icon: "people" },
-  { label: "Borrow History", icon: "history" },
-  { label: "Branches", icon: "account_balance" },
-  { label: "Profile", icon: "person" }
+  { label: "Dashboard", icon: "dashboard", path: "/dashboard" },
+  { label: "Catalog", icon: "auto_stories", path: "/dashboard/catalog" },
+  { label: "Books", icon: "menu_book", path: "/dashboard/books" },
+  { label: "Users", icon: "people", path: "/dashboard/users" },
+  { label: "Borrow History", icon: "history", path: "/dashboard/borrow-history" },
+  { label: "Branches", icon: "account_balance", path: "/dashboard/branches" },
+  { label: "Profile", icon: "person", path: "/dashboard/profile" }
 ];
 
 const DashboardSidebar = ({ active = "Dashboard", onLogout }) => {
+  const navigate = useNavigate();
   return (
     <div className="sidebar">
       <div className="sidebar-header">
         <div className="sidebar-logo">
           <img
-            src="/images/bookworm-logo.svg"
+            src={require("../images/bookworm-logo-dark.svg")}
             alt="BookWorm Library"
             width="180"
             height="110"
@@ -29,15 +31,7 @@ const DashboardSidebar = ({ active = "Dashboard", onLogout }) => {
           <div
             key={item.label}
             className={`menu-item${active === item.label ? " active" : ""}`}
-            onClick={() => {
-              if (item.label === "Profile") {
-                window.location.href = "/profile";
-              } else if (item.label === "Borrow History") {
-                window.location.href = "/borrow-history";
-              } else if (item.label === "Books") {
-                window.location.href = "/books";
-              }
-            }}
+            onClick={() => navigate(item.path)}
           >
             <span className="material-icons menu-icon">{item.icon}</span>
             {item.label}
