@@ -4,11 +4,9 @@ import "../styles/dashboard.css";
 
 const menuItems = [
   { label: "Dashboard", icon: "dashboard", path: "/dashboard" },
-  { label: "Catalog", icon: "auto_stories", path: "/dashboard/catalog" },
   { label: "Books", icon: "menu_book", path: "/dashboard/books" },
   { label: "Users", icon: "people", path: "/dashboard/users" },
   { label: "Borrow History", icon: "history", path: "/dashboard/borrow-history" },
-  { label: "Branches", icon: "account_balance", path: "/dashboard/branches" },
   { label: "Profile", icon: "person", path: "/dashboard/profile" }
 ];
 

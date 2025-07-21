@@ -5,6 +5,8 @@ import DashboardSidebar from "../components/DashboardSidebar";
 import "../styles/dashboard.css";
 import UserManagement from "./UserManagement";
 import BookManagement from "./BookManagement";
+import BorrowHistoryPage from "./BorrowHistoryPage";
+import ProfilePage from "./ProfilePage";
 
 // Dashboard summary/home component
 const DashboardHome = () => (
@@ -30,13 +32,6 @@ const DashboardHome = () => (
   </div>
 );
 
-// Placeholder for other pages
-const PlaceholderPage = ({ title }) => (
-  <div style={{ padding: '4rem', textAlign: 'center', color: '#888' }}>
-    <h1>{title}</h1>
-    <p>This page is under construction.</p>
-  </div>
-);
 
 const DashboardPage = () => {
   // In a real app, get this from auth context or JWT
@@ -52,10 +47,8 @@ const DashboardPage = () => {
   const path = location.pathname;
   let activeMenu = "Dashboard";
   if (path.includes("/dashboard/users")) activeMenu = "Users";
-  else if (path.includes("/dashboard/catalog")) activeMenu = "Catalog";
   else if (path.includes("/dashboard/books")) activeMenu = "Books";
   else if (path.includes("/dashboard/borrow-history")) activeMenu = "Borrow History";
-  else if (path.includes("/dashboard/branches")) activeMenu = "Branches";
   else if (path.includes("/dashboard/profile")) activeMenu = "Profile";
 
   return (
@@ -66,11 +59,9 @@ const DashboardPage = () => {
         <div className="content-container">
           <Routes>
             <Route path="/users" element={<UserManagement />} />
-            <Route path="/catalog" element={<PlaceholderPage title="Catalog" />} />
             <Route path="/books" element={<BookManagement />} />
-            <Route path="/borrow-history" element={<PlaceholderPage title="Borrow History" />} />
-            <Route path="/branches" element={<PlaceholderPage title="Branches" />} />
-            <Route path="/profile" element={<PlaceholderPage title="Profile" />} />
+            <Route path="/borrow-history" element={<BorrowHistoryPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="*" element={<DashboardHome />} />
           </Routes>
         </div>
