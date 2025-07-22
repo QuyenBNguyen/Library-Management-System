@@ -3,7 +3,7 @@ import axios from "axios";
 import BookModal from "../components/BookModal";
 import "../styles/dashboard.css";
 
-const BookManagement = () => {
+const BookManagement = ({ userRole = 'member' }) => {
   const [books, setBooks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -112,10 +112,12 @@ const BookManagement = () => {
         <div className="user-table-header-row">
           <div className="user-table-header-title">Book Management</div>
           <div className="user-table-header-actions">
-            <button className="add-user-btn" onClick={openAddModal} disabled={loading}>
-              <span className="material-icons">add_circle</span>
-              Add Book
-            </button>
+            {userRole !== 'manager' && (
+              <button className="add-user-btn" onClick={openAddModal} disabled={loading}>
+                <span className="material-icons">add_circle</span>
+                Add Book
+              </button>
+            )}
             <div className="search-bar">
               <span className="material-icons">search</span>
               <input
@@ -155,12 +157,14 @@ const BookManagement = () => {
                         <button className="btn-action btn-view" title="View Details" onClick={() => openViewModal(book)} disabled={loading}>
                           <span className="material-icons" style={{ color: '#111' }}>visibility</span>
                         </button>
-                        <button className="btn-action btn-edit" title="Edit Book" onClick={() => openEditModal(book)} disabled={loading}>
-                          <span className="material-icons" style={{ color: '#111' }}>edit</span>
-                        </button>
-                        <button className="btn-action btn-delete" title="Delete Book" onClick={() => handleDelete(book._id)} disabled={loading}>
-                          <span className="material-icons" style={{ color: '#111' }}>delete</span>
-                        </button>
+                        {userRole !== 'manager' && <>
+                          <button className="btn-action btn-edit" title="Edit Book" onClick={() => openEditModal(book)} disabled={loading}>
+                            <span className="material-icons" style={{ color: '#111' }}>edit</span>
+                          </button>
+                          <button className="btn-action btn-delete" title="Delete Book" onClick={() => handleDelete(book._id)} disabled={loading}>
+                            <span className="material-icons" style={{ color: '#111' }}>delete</span>
+                          </button>
+                        </>}
                       </div>
                     </td>
                   </tr>

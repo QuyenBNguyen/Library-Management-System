@@ -4,10 +4,10 @@ const borrowController = require('../controllers/borrowController');
 const authMiddleware = require('../middleware/authMiddleware');
 const roleMiddleware = require('../middleware/roleMiddleware');
 
-// Checkout books (member)
+// Checkout books (member, librarian)
 router.post('/checkout', authMiddleware, roleMiddleware(['member', 'librarian']), borrowController.checkoutBooks);
 
-// Return books (member)
+// Return books (member, librarian)
 router.post('/return', authMiddleware, roleMiddleware(['member', 'librarian']), borrowController.returnBooks);
 
 // Get borrow history (member, librarian, manager)
