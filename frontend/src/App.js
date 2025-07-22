@@ -21,8 +21,10 @@ import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import BorrowHistoryPage from "./pages/BorrowHistoryPage";
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
+import RegisterPage from "./pages/RegisterPage";
+import DashboardPage from "./pages/DashboardPage";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentFailure from "./pages/PaymentFailure";
 
 // Trang giả cho các link chưa làm
 const PlaceholderPage = ({ title }) => (
@@ -43,9 +45,9 @@ function App() {
             </Layout>
           }
         />
-        <Route path="/login" element={<LoginPage />}/>
-        <Route path="/register" element={<RegisterPage/>} />
-        <Route path="/dashboard/*" element={<DashboardPage/>} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/dashboard/*" element={<DashboardPage />} />
         <Route
           path="/catalog"
           element={
@@ -80,6 +82,23 @@ function App() {
             </Layout>
           }
         />
+        <Route
+          path="/payment/success"
+          element={
+            <Layout>
+              <PaymentSuccess />
+            </Layout>
+          }
+        />
+        <Route
+          path="/payment/failure"
+          element={
+            <Layout>
+              <PaymentFailure />
+            </Layout>
+          }
+        />
+
         {/* THÊM ROUTE ĐỘNG CHO TRANG CHI TIẾT SÁCH */}
         <Route
           path="/books/:bookId"
@@ -115,9 +134,8 @@ function App() {
             </Layout>
           }
         />
-        </Routes>
-      </BrowserRouter>
-
+      </Routes>
+    </BrowserRouter>
   );
 }
 
