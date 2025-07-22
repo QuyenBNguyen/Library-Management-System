@@ -19,13 +19,19 @@ const getAllLoans = async (req, res) => {
   }
 
   try {
+    const loanCount = await Loan.countDocuments(query);
+
     const loans = await Loan.find(query)
       .populate("user")
       .populate("book")
       .skip((page - 1) * limit)
       .limit(limit);
 
-    res.status(200).json(loans);
+    res.status(200).json({
+      data: loans,
+      page: page,
+      totalPages: Math.ceil(loanCount / limit),
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

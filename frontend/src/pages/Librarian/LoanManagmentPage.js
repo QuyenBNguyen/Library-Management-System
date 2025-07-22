@@ -20,9 +20,12 @@ const LoanManagmentPage = () => {
         limit: 8,
       });
 
-      setLoans(res.data);
+      setLoans(res.data.data);
 
-      setPagination({ page: res.data.page, totalPages: res.data.totalPages });
+      setPagination({
+        page: Number(res.data.page),
+        totalPages: Number(res.data.totalPages),
+      });
     } catch (err) {
       console.error("Failed to fetch loans:", err);
     } finally {
@@ -32,7 +35,9 @@ const LoanManagmentPage = () => {
 
   useEffect(() => {
     fetchLoans();
-  }, []);
+  }, [filters, pagination.page]);
+
+  console.log("loans", loans);
 
   return (
     <div className="p-4">
@@ -53,31 +58,57 @@ const LoanManagmentPage = () => {
             <div className="py-3 px-4 border">Overdue Fee</div>
             <div className="py-3 px-4 border">Is Paid</div>
           </div>
-          {loans.map((loan) => (
-            <div key={loan._id} className="grid grid-cols-12">
-              <div className="col-span-2 py-2 px-4 border">{loan._id}</div>
-              <div className="col-span-2 py-2 px-4 border">
-                {loan.book.title}
+          {loans.length > 0 &&
+            loans.map((loan) => (
+              <div key={loan._id} className="grid grid-cols-12">
+                <div className="col-span-2 py-2 px-4 border">{loan._id}</div>
+                <div className="col-span-2 py-2 px-4 border">
+                  {loan.book?.title}
+                </div>
+                <div className="col-span-2 py-2 px-4 border">
+                  {loan.user.email}
+                </div>
+                <div className=" py-2 px-4 border">
+                  {dayjs(loan.borrowDate).format("DD/MM/YYYY")}
+                </div>
+                <div className=" py-2 px-4 border">
+                  {dayjs(loan.dueDate).format("DD/MM/YYYY")}
+                </div>
+                <div className=" py-2 px-4 border">
+                  {loan.returnDate &&
+                    dayjs(loan.returnDate).format("DD/MM/YYYY")}
+                </div>
+                <div className=" py-2 px-4 border">{loan.status}</div>
+                <div className=" py-2 px-4 border">{loan.overdueFee}</div>
+                <div className=" py-2 px-4 border">
+                  {loan.isPaid ? "Paid" : "Not Paid"}
+                </div>
               </div>
-              <div className="col-span-2 py-2 px-4 border">
-                {loan.user.email}
-              </div>
-              <div className=" py-2 px-4 border">
-                {dayjs(loan.borrowDate).format("DD/MM/YYYY")}
-              </div>
-              <div className=" py-2 px-4 border">
-                {dayjs(loan.dueDate).format("DD/MM/YYYY")}
-              </div>
-              <div className=" py-2 px-4 border">
-                {loan.returnDate && dayjs(loan.returnDate).format("DD/MM/YYYY")}
-              </div>
-              <div className=" py-2 px-4 border">{loan.status}</div>
-              <div className=" py-2 px-4 border">{loan.overdueFee}</div>
-              <div className=" py-2 px-4 border">
-                {loan.isPaid ? "Paid" : "Not Paid"}
-              </div>
-            </div>
-          ))}
+            ))}
+        </div>
+        {/* Pagination */}
+        <div className="flex justify-center gap-2 mt-6">
+          <button
+            disabled={pagination.page === 1}
+            onClick={() =>
+              setPagination((prev) => ({ ...prev, page: prev.page - 1 }))
+            }
+            className="px-4 py-2 bg-gray-200 rounded"
+          >
+            ◀️ Prev
+          </button>
+          <span className="px-4 py-2">
+            {pagination.page} / {pagination.totalPages}
+          </span>
+          <button
+            disabled={pagination.page === pagination.totalPages}
+            onClick={() =>
+              setPagination((prev) => ({ ...prev, page: prev.page + 1 }))
+            }
+            className="px-4 py-2 bg-gray-200 rounded"
+          >
+            Next ▶️
+          </button>
         </div>
       </div>
     </div>

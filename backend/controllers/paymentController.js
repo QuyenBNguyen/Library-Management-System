@@ -23,6 +23,8 @@ const getAllPayments = async (req, res, next) => {
   }
 
   try {
+    const paymentCount = await Payment.countDocuments(query);
+
     const payments = await Payment.find(query)
       .populate("user")
       .populate("loans")
@@ -30,7 +32,11 @@ const getAllPayments = async (req, res, next) => {
       .skip((page - 1) * limit)
       .limit(limit);
 
-    res.status(200).json(payments);
+    res.status(200).json({
+      data: payments,
+      page: page,
+      totalPages: Math.ceil(paymentCount / limit),
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
