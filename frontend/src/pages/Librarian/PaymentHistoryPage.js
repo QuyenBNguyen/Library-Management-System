@@ -56,7 +56,9 @@ const PaymentHistoryPage = () => {
           </div>
           {payments.map((payment) => (
             <div key={payment._id} className="grid grid-cols-12">
-              <div className="col-span-2 py-2 px-4 border">{payment._id}</div>
+              <div className="col-span-2 py-2 px-4 border overflow-x-scroll scrollbar-hide">
+                {payment._id}
+              </div>
               <div className="col-span-2 py-2 px-4 border">
                 {payment.user.name}
               </div>

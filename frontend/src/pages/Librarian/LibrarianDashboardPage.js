@@ -13,7 +13,8 @@ const LibrarianDashboardPage = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await axiosClient.get("/dashboard/librarian-stats");
+        const res = await axiosClient.get("/dashboard");
+        console.log("res.data", res.data);
         setStats(res.data);
       } catch (err) {
         console.error("Failed to fetch dashboard stats:", err);

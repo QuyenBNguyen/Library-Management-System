@@ -61,7 +61,9 @@ const LoanManagmentPage = () => {
           {loans.length > 0 &&
             loans.map((loan) => (
               <div key={loan._id} className="grid grid-cols-12">
-                <div className="col-span-2 py-2 px-4 border">{loan._id}</div>
+                <div className="col-span-2 py-2 px-4 border overflow-x-scroll scrollbar-hide">
+                  {loan._id}
+                </div>
                 <div className="col-span-2 py-2 px-4 border">
                   {loan.book?.title}
                 </div>
