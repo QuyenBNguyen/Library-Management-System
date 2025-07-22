@@ -1,4 +1,4 @@
-const User = require('../models/user');
+const User = require("../models/user");
 
 // @desc    Get all members
 // @route   GET /members
@@ -9,12 +9,12 @@ exports.getAllMembers = async (req, res) => {
     res.status(200).json({
       success: true,
       count: members.length,
-      data: members
+      data: members,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -26,7 +26,9 @@ exports.getMemberById = async (req, res) => {
   try {
     const member = await User.findById(req.params.id);
     if (!member) {
-      return res.status(404).json({ success: false, error: 'Member not found' });
+      return res
+        .status(404)
+        .json({ success: false, error: "Member not found" });
     }
     res.status(200).json({ success: true, data: member });
   } catch (error) {
@@ -43,23 +45,25 @@ exports.createMember = async (req, res) => {
       name,
       email,
       password,
-      role = 'member', // default role
+      role = "member", // default role
       phone,
       street,
       district,
-      city
+      city,
     } = req.body;
 
     if (!name || !email) {
       return res.status(400).json({
         success: false,
-        error: 'Name and email are required'
+        error: "Name and email are required",
       });
     }
 
     const existing = await User.findOne({ email });
     if (existing) {
-      return res.status(400).json({ success: false, error: 'Email already in use' });
+      return res
+        .status(400)
+        .json({ success: false, error: "Email already in use" });
     }
 
     const member = await User.create({
@@ -70,7 +74,7 @@ exports.createMember = async (req, res) => {
       phone,
       street,
       district,
-      city
+      city,
     });
 
     res.status(201).json({ success: true, data: member });
@@ -88,7 +92,9 @@ exports.updateMember = async (req, res) => {
     const member = await User.findById(req.params.id);
 
     if (!member) {
-      return res.status(404).json({ success: false, error: 'Member not found' });
+      return res
+        .status(404)
+        .json({ success: false, error: "Member not found" });
     }
 
     Object.assign(member, updates);
@@ -107,7 +113,9 @@ exports.deleteMember = async (req, res) => {
   try {
     const member = await User.findById(req.params.id);
     if (!member) {
-      return res.status(404).json({ success: false, error: 'Member not found' });
+      return res
+        .status(404)
+        .json({ success: false, error: "Member not found" });
     }
 
     await member.deleteOne();
@@ -125,12 +133,16 @@ exports.updateMemberRole = async (req, res) => {
     const { role } = req.body;
 
     if (!role) {
-      return res.status(400).json({ success: false, error: 'Role is required' });
+      return res
+        .status(400)
+        .json({ success: false, error: "Role is required" });
     }
 
     const member = await User.findById(req.params.id);
     if (!member) {
-      return res.status(404).json({ success: false, error: 'Member not found' });
+      return res
+        .status(404)
+        .json({ success: false, error: "Member not found" });
     }
 
     member.role = role;
@@ -147,21 +159,21 @@ exports.updateMemberRole = async (req, res) => {
 exports.memberGetProfile = async (req, res) => {
   try {
     // req.user đã được authMiddleware gán
-    const user = await User.findById(req.user._id).populate('role', 'name');
+    const user = await User.findById(req.user._id).populate("role", "name");
     if (!user) {
       return res.status(404).json({
         success: false,
-        error: 'User not found'
+        error: "User not found",
       });
     }
     res.status(200).json({
       success: true,
-      data: user
+      data: user,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -170,13 +182,13 @@ exports.memberGetProfile = async (req, res) => {
 // @route   PUT /member/profile/me
 exports.updateMemberProfile = async (req, res) => {
   try {
-    const { name, email, phone, street, district, city } = req.body;
-    
+    const { name, email, phone, street, district, city, avatar } = req.body;
+
     const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({
         success: false,
-        error: 'User not found'
+        error: "User not found",
       });
     }
 
@@ -187,17 +199,18 @@ exports.updateMemberProfile = async (req, res) => {
     if (street) user.street = street;
     if (district) user.district = district;
     if (city) user.city = city;
+    if (avatar) user.avatar = avatar;
 
     const updatedUser = await user.save();
 
     res.status(200).json({
       success: true,
-      data: updatedUser
+      data: updatedUser,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -206,55 +219,61 @@ exports.updateMemberProfile = async (req, res) => {
 // @route   PUT /member/change-password
 exports.changePassword = async (req, res) => {
   try {
-    console.log('Change password request received');
+    console.log("Change password request received");
     const { currentPassword, newPassword } = req.body;
-    console.log('Request body:', { currentPassword: '***', newPassword: '***' });
-    console.log('User ID from token:', req.user._id);
-    
+    console.log("Request body:", {
+      currentPassword: "***",
+      newPassword: "***",
+    });
+    console.log("User ID from token:", req.user._id);
+
     // Validate input
     if (!currentPassword || !newPassword) {
-      console.log('Missing required fields');
+      console.log("Missing required fields");
       return res.status(400).json({
         success: false,
-        error: 'Current password and new password are required'
+        error: "Current password and new password are required",
       });
     }
 
     if (newPassword.length < 6) {
-      console.log('New password too short');
+      console.log("New password too short");
       return res.status(400).json({
         success: false,
-        error: 'New password must be at least 6 characters long'
+        error: "New password must be at least 6 characters long",
       });
     }
 
     // Check if new password is different from current password
     if (currentPassword === newPassword) {
-      console.log('New password is same as current password');
+      console.log("New password is same as current password");
       return res.status(400).json({
         success: false,
-        error: 'New password must be different from current password'
+        error: "New password must be different from current password",
       });
     }
 
     const user = await User.findById(req.user._id);
     if (!user) {
-      console.log('User not found:', req.user._id);
+      console.log("User not found:", req.user._id);
       return res.status(404).json({
         success: false,
-        error: 'User not found'
+        error: "User not found",
       });
     }
 
     // Verify current password
-    const bcrypt = require('bcryptjs');
-    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
-    
+    const bcrypt = require("bcryptjs");
+    const isCurrentPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
+
     if (!isCurrentPasswordValid) {
-      console.log('Current password is incorrect');
+      console.log("Current password is incorrect");
       return res.status(400).json({
         success: false,
-        error: 'Current password is incorrect'
+        error: "Current password is incorrect",
       });
     }
 
@@ -265,17 +284,17 @@ exports.changePassword = async (req, res) => {
     // Update password
     user.password = hashedNewPassword;
     await user.save();
-    console.log('Password updated successfully for user:', user._id);
+    console.log("Password updated successfully for user:", user._id);
 
     res.status(200).json({
       success: true,
-      message: 'Password changed successfully'
+      message: "Password changed successfully",
     });
   } catch (error) {
-    console.error('Change password error:', error);
+    console.error("Change password error:", error);
     res.status(500).json({
       success: false,
-      error: 'Internal server error. Please try again later.'
+      error: "Internal server error. Please try again later.",
     });
   }
 };

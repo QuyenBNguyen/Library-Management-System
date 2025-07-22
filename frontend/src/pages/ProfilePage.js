@@ -236,13 +236,13 @@ const ProfilePage = () => {
     email: "",
     phone: "",
     role: "",
-  
+
     joinDate: "",
     address: "",
     avatar: "/images/avatar-placeholder.jpg",
     street: "",
     district: "",
-    city: ""
+    city: "",
   });
 
   const [formData, setFormData] = useState({ ...profileData });
@@ -253,7 +253,9 @@ const ProfilePage = () => {
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState("");
   const [isAvatarLoading, setIsAvatarLoading] = useState(false);
-  const [avatarToShow, setAvatarToShow] = useState(localStorage.getItem("lastAvatar") || "/images/avatar-placeholder.jpg");
+  const [avatarToShow, setAvatarToShow] = useState(
+    localStorage.getItem("lastAvatar") || "/images/avatar-placeholder.jpg"
+  );
   const [oldAvatarUrl, setOldAvatarUrl] = useState("");
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [persistentAvatar, setPersistentAvatar] = useState(
@@ -265,7 +267,7 @@ const ProfilePage = () => {
 
   // Get auth token from localStorage
   const getAuthToken = () => {
-    return localStorage.getItem('token');
+    return localStorage.getItem("token");
   };
 
   // Fetch profile data from API
@@ -275,7 +277,7 @@ const ProfilePage = () => {
       setLoading(true);
       setError(null);
       const token = getAuthToken();
-      
+
       if (!token) {
         setError("No authentication token found. Please login again.");
         setLoading(false);
@@ -286,9 +288,9 @@ const ProfilePage = () => {
 
       const response = await axios.get(`${API_BASE_URL}/member/profile/me`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
 
       console.log("Profile response:", response.data);
@@ -301,19 +303,24 @@ const ProfilePage = () => {
           email: userData.email || "",
           phone: userData.phone || "",
           role: userData.role || "",
-         
-          joinDate: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : "",
-          address: `${userData.street || ""}, ${userData.district || ""}, ${userData.city || ""}`.trim(),
-          avatar: userData.avatar ||"",
+
+          joinDate: userData.createdAt
+            ? new Date(userData.createdAt).toLocaleDateString()
+            : "",
+          address: `${userData.street || ""}, ${userData.district || ""}, ${
+            userData.city || ""
+          }`.trim(),
+          avatar: userData.avatar || "",
           street: userData.street || "",
           district: userData.district || "",
-          city: userData.city || ""
+          city: userData.city || "",
         };
-        
+
         const avatarUrl =
-          (profileInfo.avatar && profileInfo.avatar.startsWith("http")) ?
-            profileInfo.avatar :
-            (localStorage.getItem("lastAvatar") || "/images/avatar-placeholder.jpg");
+          profileInfo.avatar && profileInfo.avatar.startsWith("http")
+            ? profileInfo.avatar
+            : localStorage.getItem("lastAvatar") ||
+              "/images/avatar-placeholder.jpg";
         setProfileData({ ...profileInfo, avatar: avatarUrl });
         setFormData({ ...profileInfo, avatar: avatarUrl });
         setAvatarPreview(""); // reset preview khi đã có avatar mới
@@ -324,13 +331,13 @@ const ProfilePage = () => {
           localStorage.setItem("lastAvatar", avatarUrl);
         }
         setLoadingProfile(false);
-        console.log('Profile data:', profileInfo);
+        console.log("Profile data:", profileInfo);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
       if (error.response?.status === 401) {
         setError("Authentication failed. Please login again.");
-        localStorage.removeItem('token');
+        localStorage.removeItem("token");
       } else if (error.response?.status === 404) {
         setError("Profile not found.");
       } else {
@@ -348,18 +355,18 @@ const ProfilePage = () => {
 
   useEffect(() => {
     // Thêm style tag vào head khi mount
-    const styleTag = document.createElement('style');
+    const styleTag = document.createElement("style");
     styleTag.innerHTML = profileStyles;
     document.head.appendChild(styleTag);
-    return () => { document.head.removeChild(styleTag); };
+    return () => {
+      document.head.removeChild(styleTag);
+    };
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    window.location.href = '/';
+    localStorage.removeItem("token");
+    window.location.href = "/";
   };
-
-  
 
   // Khi nhấn Edit chung
   const handleEdit = () => {
@@ -391,36 +398,51 @@ const ProfilePage = () => {
       // Validate số điện thoại
       if (formData.phone) {
         if (formData.phone.length > 10) {
-          setError("Invalid phone number. It must be exactly 10 digits and start with 0.");
+          setError(
+            "Invalid phone number. It must be exactly 10 digits and start with 0."
+          );
           return;
         }
         const phoneRegex = /^0\d{9}$/;
         if (!phoneRegex.test(formData.phone)) {
-          setError("Invalid phone number. It must be exactly 10 digits and start with 0.");
+          setError(
+            "Invalid phone number. It must be exactly 10 digits and start with 0."
+          );
           return;
         }
       }
       let avatarUrl = profileData.avatar;
       if (avatarFile) {
+        console.log("avatarFile:", avatarFile);
         const formData = new FormData();
-        formData.append('avatar', avatarFile);
+        formData.append("avatar", avatarFile);
+        // Debug: log các entries của formData
+        for (let pair of formData.entries()) {
+          console.log("FormData:", pair[0], pair[1]);
+        }
         try {
-          const res = await axios.post(`${API_BASE_URL}/member/avatar/upload`, formData, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'multipart/form-data'
+          const res = await axios.post(
+            `${API_BASE_URL}/member/avatar/upload`,
+            formData,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                // KHÔNG set Content-Type, axios sẽ tự động xử lý
+              },
             }
-          });
+          );
           if (res.data.success) {
-            avatarUrl = res.data.avatar + '?v=' + Date.now();
+            avatarUrl = res.data.avatar + "?v=" + Date.now();
             setIsAvatarLoading(true);
             setAvatarPreview(avatarUrl);
             setAvatarToShow(avatarUrl);
           }
         } catch (err) {
-          setError('Failed to upload avatar');
+          setError("Failed to upload avatar");
           return;
         }
+      } else {
+        console.log("avatarFile is null or undefined!");
       }
       // Chuẩn bị dữ liệu update
       const updateData = {
@@ -430,22 +452,28 @@ const ProfilePage = () => {
         street: formData.street,
         district: formData.district,
         city: formData.city,
-        avatar: avatarUrl
+        avatar: avatarUrl,
       };
       // Nếu là address thì tách lại thành street, district, city
       if (fieldValue === "address") {
-        const [street, district, city] = fieldValue.split(",").map(s => s.trim());
+        const [street, district, city] = fieldValue
+          .split(",")
+          .map((s) => s.trim());
         updateData.street = street || "";
         updateData.district = district || "";
         updateData.city = city || "";
         delete updateData.address;
       }
-      const response = await axios.put(`${API_BASE_URL}/member/profile/me`, updateData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+      const response = await axios.put(
+        `${API_BASE_URL}/member/profile/me`,
+        updateData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
-      });
+      );
       if (response.data.success) {
         setIsEditing(false);
         setAvatarFile(null);
@@ -471,7 +499,7 @@ const ProfilePage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   // Hàm lưu từng trường
@@ -498,30 +526,37 @@ const ProfilePage = () => {
       const updateData = { [field]: fieldValue };
       // Nếu là address thì tách lại thành street, district, city
       if (field === "address") {
-        const [street, district, city] = fieldValue.split(",").map(s => s.trim());
+        const [street, district, city] = fieldValue
+          .split(",")
+          .map((s) => s.trim());
         updateData.street = street || "";
         updateData.district = district || "";
         updateData.city = city || "";
         delete updateData.address;
       }
-      const response = await axios.put(`${API_BASE_URL}/member/profile/me`, updateData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+      const response = await axios.put(
+        `${API_BASE_URL}/member/profile/me`,
+        updateData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
-      });
+      );
       if (response.data.success) {
         // Cập nhật lại profileData
         if (field === "address") {
-          setProfileData(prev => ({
+          setProfileData((prev) => ({
             ...prev,
             street: updateData.street,
             district: updateData.district,
             city: updateData.city,
-            address: `${updateData.street}, ${updateData.district}, ${updateData.city}`.trim()
+            address:
+              `${updateData.street}, ${updateData.district}, ${updateData.city}`.trim(),
           }));
         } else {
-          setProfileData(prev => ({ ...prev, [field]: fieldValue }));
+          setProfileData((prev) => ({ ...prev, [field]: fieldValue }));
         }
         setEditingField(null);
         setFieldValue("");
@@ -535,15 +570,26 @@ const ProfilePage = () => {
 
   if (loading && !profileData.id) {
     return (
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(120deg, #f5e6c9 0%, #e1bb80 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "linear-gradient(120deg, #f5e6c9 0%, #e1bb80 100%)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <div className="main-content">
           <div className="content-container">
-            <div className="loading" style={{
-              textAlign: 'center',
-              padding: '50px',
-              fontSize: '18px',
-              color: '#666'
-            }}>
+            <div
+              className="loading"
+              style={{
+                textAlign: "center",
+                padding: "50px",
+                fontSize: "18px",
+                color: "#666",
+              }}
+            >
               Loading profile...
             </div>
           </div>
@@ -553,8 +599,25 @@ const ProfilePage = () => {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(120deg, #f5e6c9 0%, #e1bb80 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="main-content" style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(120deg, #f5e6c9 0%, #e1bb80 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        className="main-content"
+        style={{
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         {/* Simple Header */}
         {/* <div className="top-header" style={{ background: 'none', boxShadow: 'none', border: 'none', marginBottom: 0, justifyContent: 'flex-start', width: '100%', maxWidth: 600 }}>
           <div className="user-info">
@@ -567,17 +630,23 @@ const ProfilePage = () => {
         </div> */}
 
         {/* Content Container */}
-        <div className="content-container" style={{ width: '100%', maxWidth: 600 }}>
+        <div
+          className="content-container"
+          style={{ width: "100%", maxWidth: 600 }}
+        >
           {/* <div className="content-header" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
             <h1 className="page-title" style={{ textAlign: 'left' }}>Profile</h1>
           </div> */}
 
           {/* Error Message */}
           {error && (
-            <div className="notification error" style={{
-              marginBottom: '20px',
-              animation: 'slideInRight 0.3s ease-out'
-            }}>
+            <div
+              className="notification error"
+              style={{
+                marginBottom: "20px",
+                animation: "slideInRight 0.3s ease-out",
+              }}
+            >
               <span className="material-icons">error</span>
               {error}
             </div>
@@ -587,15 +656,39 @@ const ProfilePage = () => {
           <div className="profile-container">
             <div className="profile-card">
               <div className="profile-header">
-                <div className="profile-avatar" style={{ position: 'relative' }}>
+                <div
+                  className="profile-avatar"
+                  style={{ position: "relative" }}
+                >
                   {loadingProfile ? (
-                    <div style={{ width: 96, height: 96, borderRadius: '50%', background: '#eee' }} />
+                    <div
+                      style={{
+                        width: 96,
+                        height: 96,
+                        borderRadius: "50%",
+                        background: "#eee",
+                      }}
+                    />
                   ) : (
                     <img
-                      src={loadingProfile ? (localStorage.getItem("lastAvatar") || "/images/avatar-placeholder.jpg") : (avatarPreview || avatarToShow || "/images/avatar-placeholder.jpg")}
+                      src={
+                        loadingProfile
+                          ? localStorage.getItem("lastAvatar") ||
+                            "/images/avatar-placeholder.jpg"
+                          : avatarPreview ||
+                            avatarToShow ||
+                            "/images/avatar-placeholder.jpg"
+                      }
                       alt="Profile Avatar"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
-                      onError={(e) => { e.target.src = "/images/avatar-placeholder.jpg"; }}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        borderRadius: "50%",
+                      }}
+                      onError={(e) => {
+                        e.target.src = "/images/avatar-placeholder.jpg";
+                      }}
                       onLoad={() => {
                         if (isAvatarLoading) {
                           setAvatarPreview("");
@@ -605,27 +698,35 @@ const ProfilePage = () => {
                     />
                   )}
                   {isEditing && (
-                    <label htmlFor="avatar-upload" style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      right: 0,
-                      background: '#fff',
-                      borderRadius: '50%',
-                      width: 36,
-                      height: 36,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 2px 8px #aaa',
-                      cursor: 'pointer',
-                      border: '2px solid #e1bb80'
-                    }}>
-                      <span className="material-icons" style={{ color: '#83552d', fontSize: 20 }}>edit</span>
+                    <label
+                      htmlFor="avatar-upload"
+                      style={{
+                        position: "absolute",
+                        bottom: 0,
+                        right: 0,
+                        background: "#fff",
+                        borderRadius: "50%",
+                        width: 36,
+                        height: 36,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: "0 2px 8px #aaa",
+                        cursor: "pointer",
+                        border: "2px solid #e1bb80",
+                      }}
+                    >
+                      <span
+                        className="material-icons"
+                        style={{ color: "#83552d", fontSize: 20 }}
+                      >
+                        edit
+                      </span>
                       <input
                         id="avatar-upload"
                         type="file"
                         accept="image/*"
-                        style={{ display: 'none' }}
+                        style={{ display: "none" }}
                         onChange={handleAvatarChange}
                       />
                     </label>
@@ -634,7 +735,6 @@ const ProfilePage = () => {
                 <div className="profile-info">
                   <h2>{profileData.name || "User Name"}</h2>
                   <p className="profile-role">{profileData.role || "Member"}</p>
-                 
                 </div>
               </div>
 
@@ -667,7 +767,11 @@ const ProfilePage = () => {
                           className="form-control"
                           placeholder="Enter email"
                           disabled
-                          style={{ background: '#eee', color: '#aaa', cursor: 'not-allowed' }}
+                          style={{
+                            background: "#eee",
+                            color: "#aaa",
+                            cursor: "not-allowed",
+                          }}
                         />
                       ) : (
                         <span>{profileData.email || "Not provided"}</span>
@@ -686,8 +790,16 @@ const ProfilePage = () => {
                             placeholder="Enter phone number"
                             maxLength={10}
                           />
-                          {error && error.toLowerCase().includes('phone') && (
-                            <div style={{ color: '#ff416c', fontSize: 13, marginTop: 4 }}>{error}</div>
+                          {error && error.toLowerCase().includes("phone") && (
+                            <div
+                              style={{
+                                color: "#ff416c",
+                                fontSize: 13,
+                                marginTop: 4,
+                              }}
+                            >
+                              {error}
+                            </div>
                           )}
                         </>
                       ) : (
@@ -741,25 +853,63 @@ const ProfilePage = () => {
                     </div>
                     <div className="detail-item">
                       <label>Full Address</label>
-                      <span>{profileData.address || "No address provided"}</span>
+                      <span>
+                        {profileData.address || "No address provided"}
+                      </span>
                     </div>
                   </div>
                 </div>
-
-              
               </div>
-              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 32 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginTop: 32,
+                }}
+              >
                 {!isEditing ? (
-                  <button className="btn btn-primary" onClick={handleEdit} style={{ minWidth: 80 }}>
-                    <span className="material-icons" style={{ fontSize: 18, marginRight: 4 }}>edit</span> Edit
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleEdit}
+                    style={{ minWidth: 80 }}
+                  >
+                    <span
+                      className="material-icons"
+                      style={{ fontSize: 18, marginRight: 4 }}
+                    >
+                      edit
+                    </span>{" "}
+                    Edit
                   </button>
                 ) : (
-                  <div style={{ display: 'flex', gap: 10 }}>
-                    <button className="btn btn-primary" onClick={handleSave} disabled={loading} style={{ minWidth: 80 }}>
-                      <span className="material-icons" style={{ fontSize: 18, marginRight: 4 }}>done</span> Done
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <button
+                      className="btn btn-primary"
+                      onClick={handleSave}
+                      disabled={loading}
+                      style={{ minWidth: 80 }}
+                    >
+                      <span
+                        className="material-icons"
+                        style={{ fontSize: 18, marginRight: 4 }}
+                      >
+                        done
+                      </span>{" "}
+                      Done
                     </button>
-                    <button className="btn btn-secondary" onClick={handleCancel} disabled={loading} style={{ minWidth: 80 }}>
-                      <span className="material-icons" style={{ fontSize: 18, marginRight: 4 }}>close</span> Cancel
+                    <button
+                      className="btn btn-secondary"
+                      onClick={handleCancel}
+                      disabled={loading}
+                      style={{ minWidth: 80 }}
+                    >
+                      <span
+                        className="material-icons"
+                        style={{ fontSize: 18, marginRight: 4 }}
+                      >
+                        close
+                      </span>{" "}
+                      Cancel
                     </button>
                   </div>
                 )}
@@ -772,4 +922,4 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage; 
+export default ProfilePage;
