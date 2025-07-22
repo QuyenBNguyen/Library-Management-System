@@ -713,7 +713,7 @@ body {
 }
 
 .btn-view {
-    background: var(--button-success);
+    background: var(--button-primary);
     color: var(--primary-text);
 }
 

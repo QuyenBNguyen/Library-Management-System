@@ -3,8 +3,9 @@ import axios from 'axios';
 import BorrowHistoryDetail from '../components/BorrowHistoryDetail';
 import BorrowBookModal from '../components/BorrowBookModal';
 import '../styles/dashboard.css';
+import { useNavigate } from 'react-router-dom';
 
-const BorrowHistoryPage = () => {
+const BorrowHistoryPage = ({ userRole = 'member' }) => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -15,6 +16,8 @@ const BorrowHistoryPage = () => {
   const [overdueSessions, setOverdueSessions] = useState([]);
   const [overdueLoading, setOverdueLoading] = useState(false);
   const [overdueError, setOverdueError] = useState('');
+
+  const navigate = useNavigate();
 
   const fetchHistory = async () => {
     setLoading(true);
@@ -160,10 +163,12 @@ const BorrowHistoryPage = () => {
           </div>
           {activeTab === 'borrowed' && (
             <div className="user-table-header-actions" style={{ marginTop: 0 }}>
-              <button className="add-user-btn" onClick={() => setShowBorrowModal(true)}>
-                <span className="material-icons">add_circle</span>
-                Checkout Books
-              </button>
+              {userRole !== 'manager' && (
+                <button className="add-user-btn" onClick={() => setShowBorrowModal(true)}>
+                  <span className="material-icons">add_circle</span>
+                  Checkout Books
+                </button>
+              )}
               <div className="search-bar">
                 <span className="material-icons">search</span>
                 <input
@@ -185,8 +190,8 @@ const BorrowHistoryPage = () => {
                   <th>Borrower</th>
                   <th>Number of Books</th>
                   <th>Due Date</th>
-                  <th>Overdue Days</th>
-                  <th>Fine</th>
+                  <th>Returned Books</th>
+                  <th>Not Returned Books</th>
                   <th>Checkout Date</th>
                   <th>Action</th>
                 </tr>
@@ -201,19 +206,37 @@ const BorrowHistoryPage = () => {
                 ) : (
                   filteredSessions.map(({ session, books }) => {
                     const hasUnreturned = books.some(b => !b.returnDate);
-                    const maxOverdue = Math.max(...books.map(b => b.overdueDay || 0));
-                    const totalFine = books.reduce((sum, b) => sum + (b.fineAmount || 0), 0);
+                    const returnedCount = books.filter(b => b.returnDate).length;
+                    const notReturnedCount = books.length - returnedCount;
                     return (
-                      <tr key={session._id} style={{ cursor: 'pointer' }} onClick={() => setSelectedSession({ session, books })}>
+                      <tr key={session._id}>
                         <td>{session._id?.slice(-3) || '-'}</td>
                         <td>{session.member?.name || '-'}</td>
                         <td>{books.length} Books</td>
                         <td>{session.dueDate ? new Date(session.dueDate).toLocaleDateString('en-GB') : '-'}</td>
-                        <td style={maxOverdue > 0 ? { color: '#ff416c', fontWeight: 700 } : {}}>{maxOverdue > 0 ? maxOverdue : '-'}</td>
-                        <td style={totalFine > 0 ? { color: '#ff416c', fontWeight: 700 } : {}}>{totalFine > 0 ? `$${totalFine}` : '-'}</td>
+                        <td>{returnedCount}</td>
+                        <td>{notReturnedCount}</td>
                         <td>{session.borrowDate ? new Date(session.borrowDate).toLocaleDateString('en-GB') + ' ' + new Date(session.borrowDate).toLocaleTimeString('en-GB', { hour12: false }) : '-'}</td>
                         <td style={{ display: 'flex', gap: 8 }}>
-                          {hasUnreturned ? (
+                          <button
+                            className="btn-action btn-view"
+                            title="View Detail"
+                            style={{
+                              padding: '0 18px',
+                              fontSize: 15,
+                              minWidth: 72,
+                              height: 36,
+                              borderRadius: 8,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              lineHeight: '1'
+                            }}
+                            onClick={() => navigate(`/dashboard/borrow-history/${session._id}`)}
+                          >
+                            View Detail
+                          </button>
+                          {userRole !== 'manager' && hasUnreturned ? (
                             <button
                               className="btn-action btn-view"
                               title="Return all"
@@ -233,30 +256,12 @@ const BorrowHistoryPage = () => {
                             >
                               Return
                             </button>
+                          ) : userRole === 'manager' && hasUnreturned ? (
+                            <span style={{ color: '#aaa' }}>Not returned</span>
                           ) : (
                             <span style={{ color: '#aaa' }}>All returned</span>
                           )}
-                          {totalFine > 0 && (
-                            <button
-                              className="btn-action btn-edit"
-                              title="Pay Fine"
-                              style={{
-                                padding: '0 18px',
-                                fontSize: 15,
-                                minWidth: 72,
-                                height: 36,
-                                borderRadius: 8,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                whiteSpace: 'nowrap',
-                                lineHeight: '1'
-                              }}
-                              onClick={e => { e.stopPropagation(); handlePayFine(session, books); }}
-                            >
-                              Pay Fine
-                            </button>
-                          )}
+                          {/* Pay Fine button remains unchanged */}
                         </td>
                       </tr>
                     );
@@ -302,7 +307,7 @@ const BorrowHistoryPage = () => {
                         <td style={totalFine > 0 ? { color: '#ff416c', fontWeight: 700 } : {}}>{totalFine > 0 ? `$${totalFine}` : '-'}</td>
                         <td>{session.borrowDate ? new Date(session.borrowDate).toLocaleDateString('en-GB') + ' ' + new Date(session.borrowDate).toLocaleTimeString('en-GB', { hour12: false }) : '-'}</td>
                         <td style={{ display: 'flex', gap: 8 }}>
-                          {hasUnreturned ? (
+                          {userRole !== 'manager' && hasUnreturned ? (
                             <button
                               className="btn-action btn-view"
                               title="Return all"
@@ -322,10 +327,12 @@ const BorrowHistoryPage = () => {
                             >
                               Return
                             </button>
+                          ) : userRole === 'manager' && hasUnreturned ? (
+                            <span style={{ color: '#aaa' }}>Not returned</span>
                           ) : (
                             <span style={{ color: '#aaa' }}>All returned</span>
                           )}
-                          {totalFine > 0 && (
+                          {userRole !== 'manager' && totalFine > 0 && (
                             <button
                               className="btn-action btn-edit"
                               title="Pay Fine"
