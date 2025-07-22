@@ -29,11 +29,11 @@ const LoginPage = () => {
       // Save token to localStorage (optional)
       localStorage.setItem("token", res.data.token);
 
-      if (
-        res.data.user.role === "manager" ||
-        res.data.user.role === "librarian"
-      ) {
+      if (res.data.user.role === "manager") {
         navigate("/dashboard"); // ✅ redirect to dashboard
+      }
+      if (res.data.user.role === "librarian") {
+        navigate("/librarian");
       } else {
         navigate("/");
       }
@@ -44,12 +44,13 @@ const LoginPage = () => {
   };
 
   return (
-
     <div className="login-split-page">
       <div className="login-left-panel">
         <img src={logo} alt="Logo" className="login-logo" />
         <h2 className="login-title">Welcome Back !!</h2>
-        <p className="login-subtitle">Please enter your credentials to log in</p>
+        <p className="login-subtitle">
+          Please enter your credentials to log in
+        </p>
         <form className="login-form" onSubmit={handleLogin}>
           {error && <div className="error-text">{error}</div>}
 
@@ -89,10 +90,7 @@ const LoginPage = () => {
         <h1 className="brand-title">BookWorm</h1>
         <div className="brand-subtitle">LIBRARY</div>
         <div className="signup-prompt">New to our platform? Sign Up now.</div>
-        <button
-          className="signup-button"
-          onClick={() => navigate("/register")}
-        >
+        <button className="signup-button" onClick={() => navigate("/register")}>
           SIGN UP
         </button>
       </div>
