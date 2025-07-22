@@ -65,7 +65,7 @@ const LibrarianLayout = () => {
   return (
     <div style={styles.body}>
       <header style={styles.header}>
-        <Link to="/" style={styles.logo}>
+        <Link to="/librarian" style={styles.logo}>
           Librarium
         </Link>
         <nav style={styles.navLinks}>
