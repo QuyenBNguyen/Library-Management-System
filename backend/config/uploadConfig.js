@@ -1,3 +1,4 @@
+const path = require("path");
 const multer = require("multer");
 
 const storage = multer.diskStorage({
@@ -5,13 +6,15 @@ const storage = multer.diskStorage({
     cb(null, "uploads");
   },
   filename: (req, file, cb) => {
-    cb(null, file.originalname);
+    const ext = path.extname(file.originalname);
+    const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9) + ext;
+    cb(null, uniqueName); // ✅ tên file unique, chống ghi đè
   },
 });
 
 const imageFileFilter = (req, file, cb) => {
   if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-    return cb(new Error("You can upload only image files!"), false);
+    return cb(new Error("Only image files are allowed!"), false);
   }
   cb(null, true);
 };

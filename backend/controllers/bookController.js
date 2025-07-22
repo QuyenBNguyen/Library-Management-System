@@ -14,7 +14,7 @@ const getAllBooks = async (req, res) => {
   } = req.query;
 
   function normalizeIsbn(isbn) {
-    return (isbn || '').replace(/[-\s]/g, '').toUpperCase();
+    return (isbn || "").replace(/[-\s]/g, "").toUpperCase();
   }
 
   let query = {};
@@ -64,42 +64,50 @@ const getAllBooks = async (req, res) => {
 
 // create a new book
 const createBook = async (req, res) => {
-  console.log('CREATE BOOK req.body:', req.body);
-  console.log('CREATE BOOK req.file:', req.file);
-  const { ISBN, title, genre, author, publishedDate, publisher, status, summary, imageUrl: imageUrlFromBody } =
-    req.body;
+  console.log("CREATE BOOK req.body:", req.body);
+  console.log("CREATE BOOK req.file:", req.file);
+  let {
+    ISBN,
+    title,
+    genre,
+    author,
+    publishedDate,
+    publisher,
+    status,
+    summary,
+    imageUrl,
+  } = req.body;
 
-  let imageUrl = null;
   if (req.file) {
-    imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
-  } else if (imageUrlFromBody) {
-    imageUrl = imageUrlFromBody;
+    imageUrl = `${req.protocol}://${req.get("host")}/uploads/${
+      req.file.filename
+    }`;
   }
 
   // Validate required fields
   if (!ISBN || !title || !author || !genre || !status) {
-    return res
-      .status(400)
-      .json({ message: "ISBN, title, author, genre, and status are required." });
+    return res.status(400).json({
+      message: "ISBN, title, author, genre, and status are required.",
+    });
   }
 
   try {
     const book = new Book({
       ISBN,
       title,
-      imageUrl,
       genre,
       author,
       publishedDate,
       publisher,
       status, // just assign the string
-      summary
+      summary,
+      imageUrl,
     });
 
     const newBook = await book.save();
     res.status(201).json(newBook);
   } catch (err) {
-    console.error('CREATE BOOK ERROR:', err);
+    console.error("CREATE BOOK ERROR:", err);
     res.status(400).json({ message: err.message });
   }
 };
@@ -126,15 +134,27 @@ const getBookById = async (req, res) => {
 // update a book by ID
 const updateBookById = async (req, res) => {
   const { id } = req.params;
-  const { ISBN, title, genre, author, publishedDate, publisher, status, summary, imageUrl: imageUrlFromBody } =
-    req.body;
+  let {
+    ISBN,
+    title,
+    genre,
+    author,
+    publishedDate,
+    publisher,
+    status,
+    summary,
+    imageUrl,
+  } = req.body;
+
+  console.log("CREATE BOOK req.body:", req.body);
+  console.log("CREATE BOOK req.file:", req.file);
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ message: "Invalid book ID." });
   }
 
   try {
-    const book = await Book.findById(id);
+    let book = await Book.findById(id);
     if (!book) {
       return res.status(404).json({ message: "Book not found." });
     }
@@ -148,9 +168,9 @@ const updateBookById = async (req, res) => {
     book.status = status;
     book.summary = summary;
     if (req.file) {
-      book.imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
-    } else if (imageUrlFromBody) {
-      book.imageUrl = imageUrlFromBody;
+      book.imageUrl = `${req.protocol}://${req.get("host")}/uploads/${
+        req.file.filename
+      }`;
     }
 
     const updatedBook = await book.save();

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axiosClient from "../../api/axiosClient";
+import bookApi from "../../api/bookApi";
 
 const statusOptions = [
   "available",
@@ -26,11 +26,14 @@ const genreOptions = [
 ];
 
 const initialForm = {
+  ISBN: "",
   title: "",
   author: "",
   publisher: "",
   genre: "",
   status: "available",
+  publishedDate: "",
+  summary: "",
   image: null,
 };
 
@@ -51,7 +54,7 @@ const BookManagementPage = () => {
   const fetchBooks = async () => {
     try {
       setLoading(true);
-      const res = await axiosClient.get("/books", {
+      const res = await bookApi.getAll({
         params: { ...filters, page: pagination.page, limit: 8 },
       });
       setBooks(res.data.data);
@@ -85,14 +88,16 @@ const BookManagementPage = () => {
     e.preventDefault();
     try {
       const formData = new FormData();
-      for (let key in form) {
-        if (form[key]) formData.append(key, form[key]);
+      Object.keys(form).forEach((key) => formData.append(key, form[key]));
+
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ": " + pair[1]);
       }
 
       if (editingBook) {
-        await axiosClient.put(`/books/${editingBook._id}`, formData);
+        await bookApi.update(editingBook._id, formData);
       } else {
-        await axiosClient.post("/books", formData);
+        await bookApi.create(formData);
       }
 
       setForm(initialForm);
@@ -106,11 +111,14 @@ const BookManagementPage = () => {
   const handleEdit = (book) => {
     setEditingBook(book);
     setForm({
-      title: book.title,
-      author: book.author,
-      publisher: book.publisher,
-      genre: book.genre,
-      status: book.status,
+      ISBN: book.ISBN || "",
+      title: book.title || "",
+      author: book.author || "",
+      publisher: book.publisher || "",
+      genre: book.genre || "",
+      status: book.status || "available",
+      publishedDate: book.publishedDate?.slice(0, 10) || "",
+      summary: book.summary || "",
       image: null,
     });
   };
@@ -118,7 +126,7 @@ const BookManagementPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this book?")) {
       try {
-        await axiosClient.delete(`/books/${id}`);
+        await bookApi.delete(id);
         fetchBooks();
       } catch (err) {
         console.error("Failed to delete book:", err);
@@ -165,7 +173,7 @@ const BookManagementPage = () => {
           className="border px-3 py-2 rounded"
         >
           <option value="">All Status</option>
-          {statusOptions?.map((s) => (
+          {statusOptions.map((s) => (
             <option key={s}>{s}</option>
           ))}
         </select>
@@ -176,7 +184,7 @@ const BookManagementPage = () => {
           className="border px-3 py-2 rounded"
         >
           <option value="">All Genre</option>
-          {genreOptions?.map((g) => (
+          {genreOptions.map((g) => (
             <option key={g}>{g}</option>
           ))}
         </select>
@@ -187,6 +195,14 @@ const BookManagementPage = () => {
         onSubmit={handleSubmit}
         className="border border-gray-100 p-4 rounded mb-6 grid grid-cols-1 md:grid-cols-2 gap-4"
       >
+        <input
+          name="ISBN"
+          placeholder="ISBN"
+          value={form.ISBN}
+          onChange={handleFormChange}
+          className="border px-3 py-2 rounded"
+          required
+        />
         <input
           name="title"
           placeholder="Title"
@@ -217,7 +233,7 @@ const BookManagementPage = () => {
           className="border px-3 py-2 rounded"
         >
           <option value="">Select Genre</option>
-          {genreOptions?.map((g) => (
+          {genreOptions.map((g) => (
             <option key={g}>{g}</option>
           ))}
         </select>
@@ -227,10 +243,17 @@ const BookManagementPage = () => {
           onChange={handleFormChange}
           className="border px-3 py-2 rounded"
         >
-          {statusOptions?.map((s) => (
+          {statusOptions.map((s) => (
             <option key={s}>{s}</option>
           ))}
         </select>
+        <input
+          type="date"
+          name="publishedDate"
+          value={form.publishedDate}
+          onChange={handleFormChange}
+          className="border px-3 py-2 rounded"
+        />
         <input
           name="image"
           type="file"
@@ -238,6 +261,14 @@ const BookManagementPage = () => {
           onChange={handleFormChange}
           className="border px-3 py-2 rounded"
         />
+        <textarea
+          name="summary"
+          placeholder="Summary"
+          value={form.summary}
+          onChange={handleFormChange}
+          className="border px-3 py-2 rounded col-span-full"
+        />
+
         <button
           type="submit"
           className="bg-blue-600 text-white rounded px-4 py-2"
@@ -261,7 +292,7 @@ const BookManagementPage = () => {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {books?.map((book) => (
+            {books.map((book) => (
               <div
                 key={book._id}
                 className="border rounded p-4 shadow hover:shadow-md"
@@ -273,28 +304,46 @@ const BookManagementPage = () => {
                     className="w-full h-40 object-cover rounded mb-2"
                   />
                 )}
-                <h2 className="font-semibold">{book.title}</h2>
+                <h2 className="font-semibold text-lg">{book.title}</h2>
+                <p>
+                  <b>ISBN:</b> {book.ISBN}
+                </p>
                 <p>
                   <b>Author:</b> {book.author}
                 </p>
                 <p>
-                  <b>Status:</b> {book.status}
-                </p>
-                <p>
                   <b>Genre:</b> {book.genre}
                 </p>
+                <p>
+                  <b>Status:</b>{" "}
+                  <span className="capitalize">{book.status}</span>
+                </p>
+                <p>
+                  <b>Publisher:</b> {book.publisher}
+                </p>
+                {book.publishedDate && (
+                  <p>
+                    <b>Published:</b>{" "}
+                    {new Date(book.publishedDate).toLocaleDateString("vi-VN")}
+                  </p>
+                )}
+                {book.summary && (
+                  <p className="text-sm text-gray-600 line-clamp-2 mt-1">
+                    {book.summary}
+                  </p>
+                )}
                 <div className="flex gap-2 mt-3">
                   <button
                     onClick={() => handleEdit(book)}
-                    className="px-3 py-1 bg-yellow-400 rounded"
+                    className="px-3 py-1 bg-yellow-400 rounded hover:bg-yellow-500"
                   >
-                    Edit
+                    ✏️ Edit
                   </button>
                   <button
                     onClick={() => handleDelete(book._id)}
-                    className="px-3 py-1 bg-red-500 text-white rounded"
+                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                   >
-                    Delete
+                    🗑️ Delete
                   </button>
                 </div>
               </div>
