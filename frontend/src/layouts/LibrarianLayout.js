@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, Navigate } from "react-router-dom";
 
 const styles = {
   body: {
@@ -58,6 +58,10 @@ const styles = {
 };
 
 const LibrarianLayout = () => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user || user.role !== "librarian") {
+    return <Navigate to="/" replace />;
+  }
   return (
     <div style={styles.body}>
       <header style={styles.header}>
