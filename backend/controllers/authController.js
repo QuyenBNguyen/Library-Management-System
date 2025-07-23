@@ -100,6 +100,11 @@ exports.login = async (req, res) => {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
+    // Check if user is banned
+    if (user.status === 'banned') {
+      return res.status(403).json({ error: 'Your account has been banned. Please contact administrator.' });
+    }
+
     if (!process.env.JWT_SECRET) {
       return res.status(500).json({ error: 'Server configuration error' });
     }

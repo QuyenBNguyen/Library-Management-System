@@ -44,4 +44,20 @@ router.delete(
   userController.deleteUser
 );
 
+// Ban user (only manager)
+router.put(
+  "/:id/ban",
+  authMiddleware,
+  roleMiddleware(["manager"]),
+  userController.banUser
+);
+
+// Unban user (only manager)
+router.put(
+  "/:id/unban",
+  authMiddleware,
+  roleMiddleware(["manager"]),
+  userController.unbanUser
+);
+
 module.exports = router;

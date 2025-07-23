@@ -6,10 +6,12 @@ const roles = [
   { value: "librarian", label: "Librarian" }
 ];
 
-const UserModal = ({ open, onClose, onSubmit, mode = "add", user = {}, loading }) => {
+const UserModal = ({ open, onClose, onSubmit, mode = "add", user = {}, loading, currentUserRole }) => {
   const isView = mode === "view";
   const isEdit = mode === "edit";
   const isAdd = mode === "add";
+  const isManager = currentUserRole === "manager";
+  const isLibrarian = currentUserRole === "librarian";
 
   const [form, setForm] = useState({
     name: "",
@@ -57,38 +59,47 @@ const UserModal = ({ open, onClose, onSubmit, mode = "add", user = {}, loading }
           </button>
         </div>
         <form className="modal-body" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Name</label>
-            {isView ? (
-              <div className="detail-value">{form.name}</div>
-            ) : (
-              <input
-                className="form-control"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                required
-                disabled={loading}
-              />
-            )}
-          </div>
-          <div className="form-group">
-            <label>Email</label>
-            {isView ? (
-              <div className="detail-value">{form.email}</div>
-            ) : (
-              <input
-                className="form-control"
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange}
-                required
-                disabled={loading}
-              />
-            )}
-          </div>
-          {(isAdd || isEdit) && (
+          {/* Name field - hidden for manager when editing */}
+          {!(isManager && isEdit) && (
+            <div className="form-group">
+              <label>Name</label>
+              {isView ? (
+                <div className="detail-value">{form.name}</div>
+              ) : (
+                <input
+                  className="form-control"
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                />
+              )}
+            </div>
+          )}
+          
+          {/* Email field - hidden for manager when editing */}
+          {!(isManager && isEdit) && (
+            <div className="form-group">
+              <label>Email</label>
+              {isView ? (
+                <div className="detail-value">{form.email}</div>
+              ) : (
+                <input
+                  className="form-control"
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                />
+              )}
+            </div>
+          )}
+          
+          {/* Password field - hidden for manager when editing */}
+          {(isAdd || isEdit) && !(isManager && isEdit) && (
             <div className="form-group">
               <label>Password{isEdit ? " (leave blank to keep)" : ""}</label>
               <input
@@ -103,6 +114,8 @@ const UserModal = ({ open, onClose, onSubmit, mode = "add", user = {}, loading }
               />
             </div>
           )}
+          
+          {/* Role field - always shown, but for manager editing only this field is shown */}
           <div className="form-group">
             <label>Role</label>
             {isView ? (
@@ -121,20 +134,38 @@ const UserModal = ({ open, onClose, onSubmit, mode = "add", user = {}, loading }
               </select>
             )}
           </div>
-          <div className="form-group">
-            <label>Phone</label>
-            {isView ? (
-              <div className="detail-value">{form.phone}</div>
-            ) : (
-              <input
-                className="form-control"
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-                disabled={loading}
-              />
-            )}
-          </div>
+          
+          {/* Manager editing: Show user info as read-only */}
+          {isManager && isEdit && (
+            <>
+              <div className="form-group">
+                <label>User Information (Read-only)</label>
+                <div className="user-info-readonly">
+                  <div><strong>Name:</strong> {user.name}</div>
+                  <div><strong>Email:</strong> {user.email}</div>
+                  <div><strong>Phone:</strong> {user.phone || 'N/A'}</div>
+                </div>
+              </div>
+            </>
+          )}
+          
+          {/* Phone field - hidden for manager when editing */}
+          {!(isManager && isEdit) && (
+            <div className="form-group">
+              <label>Phone</label>
+              {isView ? (
+                <div className="detail-value">{form.phone}</div>
+              ) : (
+                <input
+                  className="form-control"
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleChange}
+                  disabled={loading}
+                />
+              )}
+            </div>
+          )}
           <div className="modal-footer">
             {isView ? (
               <button type="button" className="btn btn-secondary" onClick={onClose}>Close</button>

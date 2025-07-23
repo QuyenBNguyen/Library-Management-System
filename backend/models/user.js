@@ -65,6 +65,14 @@ const userSchema = new Schema({
             message: 'Avatar must be a valid URL'
         }
     },
+    status: {
+        type: String,
+        enum: {
+            values: ['active', 'banned'],
+            message: 'Status must be either active or banned'
+        },
+        default: 'active'
+    },
 }, {
     timestamps: true // Adds createdAt and updatedAt fields
 });

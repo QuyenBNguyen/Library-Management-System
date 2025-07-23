@@ -23,13 +23,18 @@ module.exports = async function (req, res, next) {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Fetch user from DB to get latest role
+    // Fetch user from DB to get latest role and status
     const user = await User.findById(decoded._id);
     if (!user) {
       return res.status(401).json({ error: 'User not found' });
     }
 
-    req.user = { _id: user._id, role: user.role };
+    // Check if user is banned
+    if (user.status === 'banned') {
+      return res.status(403).json({ error: 'Your account has been banned. Please contact administrator.' });
+    }
+
+    req.user = { _id: user._id, role: user.role, status: user.status };
     next();
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
