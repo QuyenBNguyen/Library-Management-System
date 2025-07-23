@@ -107,6 +107,18 @@ const Layout = ({ children }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  // Get user avatar (from localStorage user object)
+  let avatarUrl = null;
+  if (isLoggedIn) {
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      avatarUrl = user && user.avatarUrl ? user.avatarUrl : null;
+    } catch {
+      avatarUrl = null;
+    }
+  }
+  const defaultAvatar = "/images/avatar-placeholder.jpg";
+
   // Handle click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -166,7 +178,19 @@ const Layout = ({ children }) => {
                 onMouseOver={(e) => (e.target.style.color = "#ffae00")}
                 onMouseOut={(e) => (e.target.style.color = "#e1bb80")}
               >
-                User {isDropdownOpen ? "▲" : "▼"}
+                <img
+                  src={avatarUrl || defaultAvatar}
+                  alt="avatar"
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    border: "2px solid #e1bb80",
+                    background: "#fff",
+                  }}
+                />
+                {isDropdownOpen ? "▲" : "▼"}
               </button>
               {isDropdownOpen && (
                 <div style={{
