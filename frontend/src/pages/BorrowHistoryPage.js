@@ -24,15 +24,36 @@ const BorrowHistoryPage = ({ userRole = 'member' }) => {
     setError('');
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Please login to view borrow history.');
+        setLoading(false);
+        return;
+      }
+
       const response = await axios.get('http://localhost:5000/api/borrow/history', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
-      setSessions(response.data.data || []);
+      
+      if (response.data && response.data.success) {
+        setSessions(response.data.data || []);
+      } else {
+        setSessions([]);
+        setError('Failed to fetch borrow history.');
+      }
     } catch (err) {
-      setError('Failed to fetch borrow history.');
+      console.error('Fetch history error:', err);
+      if (err.response?.status === 401) {
+        setError('Session expired. Please login again.');
+        localStorage.removeItem('token');
+        navigate('/login');
+      } else if (err.response?.status === 403) {
+        setError('Access denied. You do not have permission to view this data.');
+      } else {
+        setError('Failed to fetch borrow history. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -43,15 +64,36 @@ const BorrowHistoryPage = ({ userRole = 'member' }) => {
     setOverdueError('');
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        setOverdueError('Please login to view overdue data.');
+        setOverdueLoading(false);
+        return;
+      }
+
       const response = await axios.get('http://localhost:5000/api/borrow/history?overdue=true', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
-      setOverdueSessions(response.data.data || []);
+      
+      if (response.data && response.data.success) {
+        setOverdueSessions(response.data.data || []);
+      } else {
+        setOverdueSessions([]);
+        setOverdueError('Failed to fetch overdue data.');
+      }
     } catch (err) {
-      setOverdueError('Failed to fetch overdue borrowers.');
+      console.error('Fetch overdue error:', err);
+      if (err.response?.status === 401) {
+        setOverdueError('Session expired. Please login again.');
+        localStorage.removeItem('token');
+        navigate('/login');
+      } else if (err.response?.status === 403) {
+        setOverdueError('Access denied.');
+      } else {
+        setOverdueError('Failed to fetch overdue borrowers. Please try again.');
+      }
     } finally {
       setOverdueLoading(false);
     }

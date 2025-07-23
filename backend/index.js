@@ -3,11 +3,14 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const path = require("path");
 const memberRoutes = require("./routes/memberRoutes");
+const userRoutes = require("./routes/userRoutes");
 const bookRoutes = require("./routes/bookRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const loanRoutes = require("./routes/loanRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const errorHandler = require("./middleware/errorHandler");
+const { apiLimiter, authLimiter } = require("./middleware/rateLimiter");
 
 // Load env vars
 dotenv.config();
@@ -15,10 +18,7 @@ dotenv.config();
 // Connect to MongoDB
 console.log("Attempting to connect to MongoDB at:", process.env.MONGO_URI);
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected Successfully"))
   .catch((err) => {
     console.error(`MongoDB Connection Error: ${err.message}`);
@@ -29,6 +29,9 @@ mongoose
   });
 
 const app = express();
+
+// Rate limiting middleware
+app.use('/auth', apiLimiter);
 
 // CORS middleware
 app.use((req, res, next) => {
@@ -60,13 +63,17 @@ app.get("/", (req, res) => {
 });
 
 // Mount routers
-app.use("/auth", require("./routes/authRoutes"));
+app.use("/auth", require("./routes/authRoutes")); // Temporarily disabled rate limiting for development
 app.use("/member", memberRoutes);
+app.use("/users", authMiddleware, userRoutes); // User management routes
 
 app.use("/api/books", authMiddleware, bookRoutes); // view, quản lý book
 app.use("/api/loans", authMiddleware, loanRoutes); // mượn trả sách + lịch sử
 app.use("/api/payments", paymentRoutes); // thanh toán
 app.use("/api/dashboard", authMiddleware, dashboardRoutes);
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 

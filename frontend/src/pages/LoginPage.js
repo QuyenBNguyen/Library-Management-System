@@ -25,18 +25,23 @@ const LoginPage = () => {
         formData
       );
       console.log("Login success", res.data);
+      console.log("User role:", res.data.user.role);
 
       // Save token to localStorage (optional)
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
+      // Redirect based on role
+      console.log("Redirecting based on role:", res.data.user.role);
       if (res.data.user.role === "manager") {
-        navigate("/dashboard"); // ✅ redirect to dashboard
-      }
-      if (res.data.user.role === "librarian") {
+        console.log("Redirecting to /dashboard");
+        navigate("/dashboard");
+      } else if (res.data.user.role === "librarian") {
+        console.log("Redirecting to /librarian");
         navigate("/librarian");
       } else {
-        navigate("/");
+        console.log("Redirecting to home");
+        navigate("/"); // member goes to home
       }
     } catch (err) {
       console.error(err);

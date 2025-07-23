@@ -25,33 +25,24 @@ const DashboardHome = ({ userRole }) => {
       setStats(s => ({ ...s, loading: true }));
       try {
         const token = localStorage.getItem("token");
-        // Fetch users
-        const usersRes = await axios.get("http://localhost:5000/users", {
+        
+        // Fetch dashboard stats from backend
+        const dashboardRes = await axios.get("http://localhost:5000/api/dashboard/", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const users = usersRes.data.data || [];
-        const members = users.filter(u => u.role === 'member').length;
-        const librarians = users.filter(u => u.role === 'librarian').length;
-        // Fetch books
-        const booksRes = await axios.get("http://localhost:5000/api/books", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const books = booksRes.data.data || booksRes.data || [];
-        // Fetch borrow sessions
-        const borrowRes = await axios.get("http://localhost:5000/api/borrow/history", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        // Count all books with status 'checked out'
-        let checkedOut = 0;
-        (books || []).forEach(b => { if (b.status === 'checked out') checkedOut++; });
+        
+        const { totalBooks, totalUsers, totalLoans, totalPayments } = dashboardRes.data;
+        
         setStats({
-          members,
-          librarians,
-          books: books.length,
-          checkedOut,
+          members: totalUsers,
+          librarians: 0, // This would need a separate endpoint to count librarians
+          books: totalBooks,
+          checkedOut: totalLoans,
           loading: false
         });
+        
       } catch (err) {
+        console.error("Dashboard stats error:", err);
         setStats(s => ({ ...s, loading: false }));
       }
     };
@@ -118,7 +109,7 @@ const DashboardHome = ({ userRole }) => {
 
 
 const DashboardPage = () => {
-  const [userRole, setUserRole] = useState('member');
+  const [userRole, setUserRole] = useState(null); // Set to null initially
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -136,7 +127,7 @@ const DashboardPage = () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
-        const res = await axios.get('http://localhost:5000/members/profile/me', {
+        const res = await axios.get('http://localhost:5000/member/profile/me', {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data && res.data.data && res.data.data.role) {

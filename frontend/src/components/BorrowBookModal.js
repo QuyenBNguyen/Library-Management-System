@@ -40,17 +40,44 @@ const BorrowBookModal = ({ isOpen, onClose, onSuccess }) => {
     setError(null);
     setMemberResults([]);
     setSelectedMember(null);
-    if (!memberSearch.trim()) return;
+    
+    if (!memberSearch.trim()) {
+      setError("Please enter a search term.");
+      return;
+    }
+    
     try {
       const token = getAuthToken();
+      if (!token) {
+        setError("Authentication required. Please login again.");
+        return;
+      }
+
       const res = await axios.get(`${API_BASE_URL}/users`, {
         headers: { 'Authorization': `Bearer ${token}` },
         params: { search: memberSearch.trim() }
       });
-      setMemberResults(res.data.data || []);
-      if ((res.data.data || []).length === 0) setError("No members found.");
+      
+      if (res.data && res.data.success) {
+        const members = res.data.data || [];
+        setMemberResults(members);
+        if (members.length === 0) {
+          setError("No members found matching your search.");
+        }
+      } else {
+        setMemberResults([]);
+        setError("Failed to search for members.");
+      }
     } catch (err) {
-      setError("Failed to search for member.");
+      console.error('Member search error:', err);
+      if (err.response?.status === 401) {
+        setError("Session expired. Please login again.");
+        localStorage.removeItem('token');
+      } else if (err.response?.status === 403) {
+        setError("Access denied. You don't have permission to search members.");
+      } else {
+        setError("Failed to search for member. Please try again.");
+      }
     }
   };
 
@@ -64,24 +91,58 @@ const BorrowBookModal = ({ isOpen, onClose, onSuccess }) => {
   const handleIsbnSearch = async () => {
     setError(null);
     setFoundBook(null);
-    if (!isbnInput.trim()) return;
+    
+    if (!isbnInput.trim()) {
+      setError("Please enter an ISBN.");
+      return;
+    }
+    
     try {
       const token = getAuthToken();
+      if (!token) {
+        setError("Authentication required. Please login again.");
+        return;
+      }
+
       const res = await axios.get(`${API_BASE_URL}/api/books`, {
         headers: { 'Authorization': `Bearer ${token}` },
         params: { search: isbnInput.trim() }
       });
-      const books = res.data.data || [];
-      // Find available book with normalized ISBN
-      const inputNorm = normalizeIsbn(isbnInput);
-      const book = books.find(b => normalizeIsbn(b.ISBN) === inputNorm && b.status === 'available');
-      if (book) {
-        setFoundBook(book);
+      
+      if (res.data) {
+        const books = res.data.data || res.data || [];
+        // Find available book with normalized ISBN
+        const inputNorm = normalizeIsbn(isbnInput);
+        const book = books.find(b => normalizeIsbn(b.ISBN) === inputNorm && b.status === 'available');
+        
+        if (book) {
+          // Check if book is already selected
+          if (selectedBooks.some(sb => sb._id === book._id)) {
+            setError("This book is already added to the list.");
+          } else {
+            setFoundBook(book);
+          }
+        } else {
+          const bookExists = books.find(b => normalizeIsbn(b.ISBN) === inputNorm);
+          if (bookExists) {
+            setError(`Book "${bookExists.title}" is currently ${bookExists.status}.`);
+          } else {
+            setError("No book found with this ISBN.");
+          }
+        }
       } else {
-        setError("No available book found with this ISBN.");
+        setError("Failed to search for book.");
       }
     } catch (err) {
-      setError("Failed to search for book.");
+      console.error('ISBN search error:', err);
+      if (err.response?.status === 401) {
+        setError("Session expired. Please login again.");
+        localStorage.removeItem('token');
+      } else if (err.response?.status === 403) {
+        setError("Access denied.");
+      } else {
+        setError("Failed to search for book. Please try again.");
+      }
     }
   };
 

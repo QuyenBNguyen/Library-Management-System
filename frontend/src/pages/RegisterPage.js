@@ -38,11 +38,11 @@ const RegisterPage = () => {
     try {
       // Combine first and last name for backend
       const registerData = {
-        name: formData.firstName + " " + formData.lastName,
+        name: formData.firstName || formData.lastName || 'User', // Handle single name input
         email: formData.email,
         password: formData.password,
         phone: formData.phone,
-        username: formData.username,
+        // role: 'member' by default (handled in backend)
       };
       const res = await axios.post("http://localhost:5000/auth/register", registerData);
       setSuccess("Registration successful! Redirecting to login...");

@@ -12,7 +12,7 @@ const DashboardHeader = () => {
         if (!token) return;
         let res;
         try {
-          res = await axios.get("http://localhost:5000/members/profile/me", {
+          res = await axios.get("http://localhost:5000/member/profile/me", {
             headers: { Authorization: `Bearer ${token}` }
           });
         } catch {}

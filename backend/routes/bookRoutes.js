@@ -1,6 +1,7 @@
 const express = require("express");
 const upload = require("../config/uploadConfig");
 const roleMiddleware = require("../middleware/roleMiddleware");
+const { bookValidationRules, validate } = require("../middleware/validation");
 
 // Import all book controllers here
 const {
@@ -24,6 +25,8 @@ router.post(
   "/",
   // roleMiddleware(["librarian"]),
   upload.single("image"),
+  bookValidationRules(),
+  validate,
   createBook
 );
 // View single book (manager, librarian, member)
@@ -37,6 +40,8 @@ router.put(
   "/:id",
   // roleMiddleware(["librarian"]),
   upload.single("image"),
+  bookValidationRules(),
+  validate,
   updateBookById
 );
 // Delete book (librarian only)

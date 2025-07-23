@@ -50,31 +50,68 @@ exports.createMember = async (req, res) => {
       city
     } = req.body;
 
-    if (!name || !email) {
+    // Validate required fields
+    if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
-        error: 'Name and email are required'
+        error: 'Name, email, and password are required'
       });
     }
 
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ success: false, error: 'Email already in use' });
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid email format'
+      });
     }
 
+    // Validate password length
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password must be at least 6 characters long'
+      });
+    }
+
+    // Check if email already exists
+    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (existing) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email already in use' 
+      });
+    }
+
+    // Hash password
+    const bcrypt = require('bcryptjs');
+    const hashedPassword = await bcrypt.hash(password, 12);
+
     const member = await User.create({
-      name,
-      email,
-      password,
+      name: name.trim(),
+      email: email.toLowerCase(),
+      password: hashedPassword,
       role,
-      phone,
-      street,
-      district,
-      city
+      phone: phone?.trim(),
+      street: street?.trim(),
+      district: district?.trim(),
+      city: city?.trim()
     });
 
-    res.status(201).json({ success: true, data: member });
+    // Remove password from response
+    const memberResponse = member.toObject();
+    delete memberResponse.password;
+
+    res.status(201).json({ success: true, data: memberResponse });
   } catch (error) {
+    console.error('Create member error:', error);
+    if (error.code === 11000) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email already exists' 
+      });
+    }
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -147,7 +184,7 @@ exports.updateMemberRole = async (req, res) => {
 exports.memberGetProfile = async (req, res) => {
   try {
     // req.user đã được authMiddleware gán
-    const user = await User.findById(req.user._id).populate('role', 'name');
+    const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({
         success: false,

@@ -64,43 +64,62 @@ const getAllBooks = async (req, res) => {
 
 // create a new book
 const createBook = async (req, res) => {
-  console.log("CREATE BOOK req.body:", req.body);
-  console.log("CREATE BOOK req.file:", req.file);
-  let {
-    ISBN,
-    title,
-    genre,
-    author,
-    publishedDate,
-    publisher,
-    status,
-    summary,
-    imageUrl,
-  } = req.body;
-
-  if (req.file) {
-    imageUrl = `${req.protocol}://${req.get("host")}/uploads/${
-      req.file.filename
-    }`;
-  }
-
-  // Validate required fields
-  if (!ISBN || !title || !author || !genre || !status) {
-    return res.status(400).json({
-      message: "ISBN, title, author, genre, and status are required.",
-    });
-  }
-
   try {
-    const book = new Book({
+    console.log("CREATE BOOK req.body:", req.body);
+    console.log("CREATE BOOK req.file:", req.file);
+    
+    let {
       ISBN,
       title,
       genre,
       author,
       publishedDate,
       publisher,
-      status, // just assign the string
+      status,
       summary,
+      imageUrl,
+    } = req.body;
+
+    // Validate required fields
+    if (!ISBN || !title || !author || !genre) {
+      return res.status(400).json({
+        message: "ISBN, title, author, and genre are required.",
+      });
+    }
+
+    // Validate ISBN format (basic validation)
+    const cleanISBN = ISBN.replace(/[-\s]/g, '');
+    if (!/^\d{10}(\d{3})?$/.test(cleanISBN)) {
+      return res.status(400).json({
+        message: "Invalid ISBN format. Must be 10 or 13 digits.",
+      });
+    }
+
+    // Check if ISBN already exists
+    const existingBook = await Book.findOne({ ISBN: cleanISBN });
+    if (existingBook) {
+      return res.status(400).json({
+        message: "A book with this ISBN already exists.",
+      });
+    }
+
+    // Set default status if not provided
+    status = status || 'available';
+
+    // Handle image upload
+    if (req.file) {
+      imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+    }
+
+    const book = new Book({
+      ISBN: cleanISBN,
+      title: title.trim(),
+      genre,
+      author: author.trim(),
+      publishedDate: publishedDate ? new Date(publishedDate) : undefined,
+      publisher: publisher?.trim(),
+      status,
+      summary: summary?.trim(),
       imageUrl,
     });
 
@@ -108,6 +127,9 @@ const createBook = async (req, res) => {
     res.status(201).json(newBook);
   } catch (err) {
     console.error("CREATE BOOK ERROR:", err);
+    if (err.code === 11000) {
+      return res.status(400).json({ message: "Book with this ISBN already exists." });
+    }
     res.status(400).json({ message: err.message });
   }
 };

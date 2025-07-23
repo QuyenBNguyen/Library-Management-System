@@ -10,26 +10,59 @@ exports.checkoutBooks = async (req, res) => {
   try {
     const { bookIds, dueDate, memberId } = req.body;
     let userId = req.user._id;
-    if (req.user.role === 'librarian' && memberId) {
-      userId = memberId;
-    }
-    console.log('checkoutBooks:', { userRole: req.user.role, memberId, usedUserId: userId });
+    
+    // Validate inputs
     if (!Array.isArray(bookIds) || bookIds.length === 0) {
       return res.status(400).json({ success: false, error: 'No books selected.' });
     }
     if (!dueDate) {
       return res.status(400).json({ success: false, error: 'Due date required.' });
     }
+    
+    // Validate memberId if provided (for librarian)
+    if (req.user.role === 'librarian' && memberId) {
+      if (!mongoose.Types.ObjectId.isValid(memberId)) {
+        return res.status(400).json({ success: false, error: 'Invalid member ID.' });
+      }
+      // Check if member exists
+      const memberExists = await User.findById(memberId);
+      if (!memberExists) {
+        return res.status(404).json({ success: false, error: 'Member not found.' });
+      }
+      userId = memberId;
+    }
+    
+    // Validate all bookIds
+    for (const bookId of bookIds) {
+      if (!mongoose.Types.ObjectId.isValid(bookId)) {
+        return res.status(400).json({ success: false, error: `Invalid book ID: ${bookId}` });
+      }
+      
+      // Check if book exists and is available
+      const book = await Book.findById(bookId);
+      if (!book) {
+        return res.status(404).json({ success: false, error: `Book not found: ${bookId}` });
+      }
+      if (book.status !== 'available') {
+        return res.status(400).json({ success: false, error: `Book "${book.title}" is not available for checkout.` });
+      }
+    }
+    
+    console.log('checkoutBooks:', { userRole: req.user.role, memberId, usedUserId: userId });
+    
     // Create BorrowSession
     const session = await BorrowSession.create({ member: userId, dueDate });
+    
     // Create BorrowBook for each book
     const borrowBooks = await Promise.all(bookIds.map(async (bookId) => {
-      // Optionally update book status
+      // Update book status
       await Book.findByIdAndUpdate(bookId, { status: 'checked out' });
       return BorrowBook.create({ book: bookId, borrowSession: session._id });
     }));
+    
     res.status(201).json({ success: true, data: { session, borrowBooks } });
   } catch (err) {
+    console.error('Checkout error:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -39,33 +72,64 @@ exports.checkoutBooks = async (req, res) => {
 exports.returnBooks = async (req, res) => {
   try {
     const { borrowBookIds } = req.body;
+    
+    // Validate input
     if (!Array.isArray(borrowBookIds) || borrowBookIds.length === 0) {
       return res.status(400).json({ success: false, error: 'No borrowBookIds provided.' });
     }
+    
+    // Validate all borrowBookIds
+    for (const id of borrowBookIds) {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ success: false, error: `Invalid borrowBook ID: ${id}` });
+      }
+    }
+    
     const now = new Date();
     const updated = [];
+    
     for (const id of borrowBookIds) {
       const borrowBook = await BorrowBook.findById(id).populate('borrowSession').populate('book');
-      if (!borrowBook) continue;
-      if (borrowBook.returnDate) continue; // already returned
+      
+      if (!borrowBook) {
+        console.warn(`BorrowBook not found: ${id}`);
+        continue;
+      }
+      
+      if (borrowBook.returnDate) {
+        console.warn(`BorrowBook already returned: ${id}`);
+        continue; // already returned
+      }
+      
+      if (!borrowBook.book) {
+        console.warn(`Book not found for borrowBook: ${id}`);
+        continue;
+      }
+      
       borrowBook.returnDate = now;
+      
       // Calculate overdue
       const due = borrowBook.borrowSession.dueDate;
       let overdueDay = 0;
       let fineAmount = 0;
+      
       if (now > due) {
         overdueDay = Math.ceil((now - due) / (1000 * 60 * 60 * 24));
         fineAmount = overdueDay * 5; // $5 per day
       }
+      
       borrowBook.overdueDay = overdueDay;
       borrowBook.fineAmount = fineAmount;
       await borrowBook.save();
-      // Optionally update book status
+      
+      // Update book status back to available
       await Book.findByIdAndUpdate(borrowBook.book._id, { status: 'available' });
       updated.push(borrowBook);
     }
+    
     res.json({ success: true, data: updated });
   } catch (err) {
+    console.error('Return books error:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
