@@ -10,8 +10,8 @@ const styles = {
   coverImage: { width: '100%', height: '330px', objectFit: 'cover' },
   content: { padding: '1rem', textAlign: 'left', display: 'flex', flexDirection: 'column', flexGrow: 1 },
   title: { fontSize: '1.1rem', fontWeight: '600', minHeight: '50px', marginBottom: '0.2rem' },
-  author: { fontSize: '0.85rem', color: '#83552d', marginBottom: '0.4rem' },
-  price: { fontSize: '1.1rem', fontWeight: '700', color: '#D9534F', marginBottom: '1rem', marginTop: 'auto' },
+  author: { fontSize: '1rem', color: '#83552d', marginBottom: '0.4rem' },
+  genre: { fontSize: '1rem', fontWeight: '100', color: '#1f1f1f', marginBottom: '1rem', marginTop: 'auto' },
   button: {
     backgroundColor: '#ffae00', color: '#543512', border: 'none', borderRadius: '6px',
     padding: '0.6rem', width: '100%', cursor: 'pointer', fontWeight: '600',
@@ -20,16 +20,17 @@ const styles = {
 };
 
 // Thêm prop 'id' để tạo link
-const BookCard = ({ id, title, author, imageUrl, price }) => {
+const BookCard = ({ id, _id, title, author, imageUrl, genre }) => {
+  const bookId = id || _id;
   return (
     <div style={styles.card} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-5px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
       <img src={imageUrl} alt={`Cover for ${title}`} style={styles.coverImage} />
       <div style={styles.content}>
         <h3 style={styles.title}>{title}</h3>
         <p style={styles.author}>by {author}</p>
-        <p style={styles.price}>{price ? price.toLocaleString('vi-VN') : 'Liên hệ'} đ</p>
+        <p style={styles.genre}>#{genre}</p>
         {/* SỬA LẠI Ở ĐÂY: BỌC NÚT BẤM TRONG THẺ LINK */}
-        <Link to={`/books/${id}`} style={styles.button}>View Details</Link>
+        <Link to={`/books/${bookId}`} style={styles.button}>View Details</Link>
       </div>
     </div>
   );

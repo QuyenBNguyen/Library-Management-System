@@ -7,24 +7,25 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Layout from "./components/Layout";
 import LibrarianLayout from "./layouts/LibrarianLayout";
-import HomePage from "./pages/HomePage";
-import BookListPage from "./pages/BookListPage";
-import BookDetailPage from "./pages/BookDetailPage"; // IMPORT TRANG MỚI
+import HomePage from "./pages/Member/HomePage";
+import BookListPage from "./pages/Member/BookListPage";
+import BookDetailPage from "./pages/Member/BookDetailPage"; // IMPORT TRANG MỚI
 import BookManagementPage from "./pages/Librarian/BookManagementPage";
-import Payment from "./pages/Payment";
-import PaymentHistory from "./pages/PaymentHistory";
-import VNPayReturn from "./pages/VNPayReturn";
+import Payment from "./pages/Member/Payment";
+import PaymentHistory from "./pages/Member/PaymentHistory";
+import VNPayReturn from "./pages/Member/VNPayReturn";
 import LibrarianDashboardPage from "./pages/Librarian/LibrarianDashboardPage";
 import LoanManagmentPage from "./pages/Librarian/LoanManagmentPage";
 import PaymentHistoryPage from "./pages/Librarian/PaymentHistoryPage";
 import LoginPage from "./pages/LoginPage";
-import ProfilePage from "./pages/ProfilePage";
-import ChangePasswordPage from "./pages/ChangePasswordPage";
+import ProfilePage from "./pages/Member/ProfilePage";
+import ChangePasswordPage from "./pages/Member/ChangePasswordPage";
 import BorrowHistoryPage from "./pages/BorrowHistoryPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentFailure from "./pages/PaymentFailure";
+import PaymentSuccess from "./pages/Member/PaymentSuccess";
+import PaymentFailure from "./pages/Member/PaymentFailure";
+import BorrowListPage from "./pages/Member/BorrowListPage";
 
 // Trang giả cho các link chưa làm
 const PlaceholderPage = ({ title }) => (
@@ -37,20 +38,15 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={
+        <Route path="/" element={
             <Layout>
               <HomePage />
             </Layout>
-          }
-        />
+          }/>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/dashboard/*" element={<DashboardPage />} />
-        <Route
-          path="/catalog"
-          element={
+        <Route path="/catalog" element={
             <Layout>
               <BookListPage />
             </Layout>
@@ -130,7 +126,7 @@ function App() {
           path="/borrow-history"
           element={
             <Layout>
-              <BorrowHistoryPage />
+              <BorrowListPage />
             </Layout>
           }
         />
