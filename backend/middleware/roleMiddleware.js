@@ -6,7 +6,7 @@ module.exports = function (roles = []) {
 
     // Check if user is authenticated AND their role is in the allowed list
     if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Forbidden. Access denied.' });
+      return res.status(403).json({ error: "Forbidden. Access denied." });
     }
 
     next(); // ✅ User role is valid, go to next middleware or controller

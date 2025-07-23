@@ -1,3 +1,22 @@
+// Gửi lại OTP xác thực tài khoản
+exports.resendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ error: "User not found." });
+    if (user.isVerified)
+      return res.status(400).json({ error: "Account already verified." });
+    // Tạo mã OTP mới
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otp = otp;
+    user.otpExpires = Date.now() + 5 * 60 * 1000;
+    await user.save();
+    await require("../utils/sendEmail")(email, otp);
+    res.json({ message: "Đã gửi lại mã xác thực OTP đến email." });
+  } catch (err) {
+    res.status(500).json({ error: "Gửi lại mã xác thực thất bại." });
+  }
+};
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");

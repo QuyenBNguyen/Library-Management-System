@@ -97,8 +97,8 @@ const styles = {
   },
   "@keyframes fadeIn": {
     from: { opacity: 0, transform: "translateY(-10px)" },
-    to: { opacity: 1, transform: "translateY(0)" }
-  }
+    to: { opacity: 1, transform: "translateY(0)" },
+  },
 };
 
 const Layout = ({ children }) => {
@@ -106,6 +106,18 @@ const Layout = ({ children }) => {
   const isLoggedIn = Boolean(localStorage.getItem("token"));
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Get user avatar (from localStorage user object)
+  let avatarUrl = null;
+  if (isLoggedIn) {
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      avatarUrl = user && user.avatarUrl ? user.avatarUrl : null;
+    } catch {
+      avatarUrl = null;
+    }
+  }
+  const defaultAvatar = "/images/avatar-placeholder.jpg";
 
   // Handle click outside
   useEffect(() => {
@@ -117,7 +129,7 @@ const Layout = ({ children }) => {
 
     // Add event listener
     document.addEventListener("mousedown", handleClickOutside);
-    
+
     // Cleanup
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -166,13 +178,17 @@ const Layout = ({ children }) => {
                 onMouseOver={(e) => (e.target.style.color = "#ffae00")}
                 onMouseOut={(e) => (e.target.style.color = "#e1bb80")}
               >
-                User {isDropdownOpen ? "▲" : "▼"}
+                {<div>User</div>}
+
+                {isDropdownOpen ? "▲" : "▼"}
               </button>
               {isDropdownOpen && (
-                <div style={{
-                  ...styles.dropdownContent,
-                  animation: "fadeIn 0.2s ease-out"
-                }}>
+                <div
+                  style={{
+                    ...styles.dropdownContent,
+                    animation: "fadeIn 0.2s ease-out",
+                  }}
+                >
                   <Link
                     to="/profile"
                     style={styles.dropdownItem}

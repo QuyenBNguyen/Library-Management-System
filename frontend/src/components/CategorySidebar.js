@@ -2,8 +2,24 @@
 
 import React from 'react';
 
+const ALL_GENRES = [
+  "Fiction",
+  "Mystery",
+  "Fantasy",
+  "Romance",
+  "Science Fiction",
+  "Horror",
+  "Biography",
+  "History",
+  "Self-help",
+  "Children",
+  "Poetry",
+  "Philosophy",
+  "Business",
+  "Travel",
+];
+
 const styles = {
-  // THU GỌN CHIỀU RỘNG
   sidebar: {
     width: '220px',
     flexShrink: 0,
@@ -14,18 +30,32 @@ const styles = {
   list: { listStyle: 'none', padding: 0, margin: 0 },
   listItem: { padding: '0.5rem 0' },
   buttonLink: { background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', textDecoration: 'none', color: '#e1bb80', fontFamily: "'Poppins', sans-serif", fontSize: '1rem', transition: 'color 0.2s' },
+  buttonActive: { color: '#ffae00', fontWeight: '700' },
 };
 
-const categories = ["Editor's Picks", "Featured Sellers", "First Edition Books", "Signed Books", 'Fiction', 'Science Fiction', 'Fantasy' ];
-
-const CategorySidebar = () => (
+const CategorySidebar = ({ selectedCategory, onSelectCategory }) => (
   <aside style={styles.sidebar}>
     <div style={styles.section}>
-      <h2 style={styles.title}>Browse Collections</h2>
+      <h2 style={styles.title}>Browse Genres</h2>
       <ul style={styles.list}>
-        {categories.map(category => (
+        <li style={styles.listItem}>
+          <button
+            style={{ ...styles.buttonLink, ...(selectedCategory === null ? styles.buttonActive : {}) }}
+            onClick={() => onSelectCategory(null)}
+            onMouseOver={e => e.target.style.color='#ffae00'}
+            onMouseOut={e => e.target.style.color = selectedCategory === null ? '#ffae00' : '#e1bb80'}
+          >
+            All Genres
+          </button>
+        </li>
+        {ALL_GENRES.map(category => (
           <li key={category} style={styles.listItem}>
-            <button style={styles.buttonLink} onMouseOver={e => e.target.style.color='#ffae00'} onMouseOut={e => e.target.style.color='#e1bb80'}>
+            <button
+              style={{ ...styles.buttonLink, ...(selectedCategory === category ? styles.buttonActive : {}) }}
+              onClick={() => onSelectCategory(category)}
+              onMouseOver={e => e.target.style.color='#ffae00'}
+              onMouseOut={e => e.target.style.color = selectedCategory === category ? '#ffae00' : '#e1bb80'}
+            >
               {category}
             </button>
           </li>

@@ -3,6 +3,9 @@ const router = express.Router();
 const authController = require("../controllers/authController");
 const forgotPasswordController = require("../controllers/forgotPasswordController");
 
+// Resend OTP
+router.post("/resend-otp", authController.resendOtp);
+
 // Auth routes
 router.post("/login", authController.login);
 router.post("/register", authController.register);

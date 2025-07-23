@@ -30,6 +30,21 @@ const OtpVerifyPage = () => {
     }
   };
 
+  const handleResendOtp = async () => {
+    setIsLoading(true);
+    setMessage("");
+    try {
+      const res = await axios.post("http://localhost:5000/auth/resend-otp", {
+        email,
+      });
+      setMessage(res.data.message);
+    } catch (err) {
+      setMessage(err.response?.data?.error || "Gửi lại mã xác thực thất bại");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div
       style={{
@@ -97,6 +112,26 @@ const OtpVerifyPage = () => {
             {isLoading ? "Đang xác thực..." : "Xác thực"}
           </button>
         </form>
+        <button
+          onClick={handleResendOtp}
+          style={{
+            width: "100%",
+            padding: "10px",
+            background: "#e1bb80",
+            color: "#543512",
+            fontWeight: 600,
+            fontSize: 16,
+            border: "none",
+            borderRadius: 8,
+            cursor: isLoading ? "not-allowed" : "pointer",
+            marginTop: 8,
+            marginBottom: 8,
+            transition: "background 0.2s",
+          }}
+          disabled={isLoading}
+        >
+          Gửi lại mã OTP
+        </button>
         {message && (
           <div
             style={{
