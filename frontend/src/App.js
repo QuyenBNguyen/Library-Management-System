@@ -21,8 +21,11 @@ import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import BorrowHistoryPage from "./pages/BorrowHistoryPage";
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
+import RegisterPage from "./pages/RegisterPage";
+import DashboardPage from "./pages/DashboardPage";
+
+import VerifyOtpPage from "./pages/EmailVerifiedPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 
 // Trang giả cho các link chưa làm
 const PlaceholderPage = ({ title }) => (
@@ -43,9 +46,12 @@ function App() {
             </Layout>
           }
         />
-        <Route path="/login" element={<LoginPage />}/>
-        <Route path="/register" element={<RegisterPage/>} />
-        <Route path="/dashboard/*" element={<DashboardPage/>} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/verify-otp" element={<VerifyOtpPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+        <Route path="/dashboard/*" element={<DashboardPage />} />
         <Route
           path="/catalog"
           element={
@@ -115,9 +121,8 @@ function App() {
             </Layout>
           }
         />
-        </Routes>
-      </BrowserRouter>
-
+      </Routes>
+    </BrowserRouter>
   );
 }
 

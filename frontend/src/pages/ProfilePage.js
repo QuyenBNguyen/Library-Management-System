@@ -2,228 +2,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 // import "../styles/dashboard.css"; // Bỏ import này nếu chỉ dùng CSS riêng cho profile
 
-// Thêm styled-components hoặc style tag cho CSS profile
-const profileStyles = `
-.profile-card {
-    background: #fffbe9;
-    border-radius: 18px;
-    padding: 48px 48px;
-    box-shadow: 0 4px 32px 0 rgba(102,126,234,0.08);
-    border: 1.5px solid #e1bb80;
-    max-width: 700px;
-    margin: 40px auto 0 auto;
-    transition: box-shadow 0.2s;
-}
-.profile-header {
-    display: flex;
-    align-items: center;
-    gap: 28px;
-    margin-bottom: 32px;
-    border-bottom: 1.5px solid #e1bb80;
-    padding-bottom: 18px;
-    background: none;
-    border-radius: 0;
-    box-shadow: none;
-}
-.profile-avatar {
-    width: 96px;
-    height: 96px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 3px solid #667eea;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.profile-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-.profile-info h2 {
-    font-size: 26px;
-    font-weight: 700;
-    color: #543512;
-    margin-bottom: 6px;
-    letter-spacing: 0.5px;
-}
-.profile-role {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 4px;
-    color: #667eea;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-.profile-id {
-    font-size: 13px;
-    color: #bfa76a;
-    font-weight: 500;
-}
-.profile-details {
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-}
-.detail-section {
-    background: #fff;
-    border-radius: 12px;
-    padding: 18px 20px 10px 20px;
-    border: 1px solid #f5e6c9;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 8px 0 #e1bb8033;
-}
-.detail-section h3 {
-    font-size: 17px;
-    font-weight: 700;
-    color: #83552d;
-    margin-bottom: 12px;
-    letter-spacing: 0.5px;
-    background: none;
-}
-.detail-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px 24px;
-}
-@media (max-width: 600px) {
-    .profile-card { padding: 18px 4px; }
-    .detail-grid { grid-template-columns: 1fr; }
-}
-.detail-item label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #83552d;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 2px;
-}
-.detail-item span {
-    font-size: 15px;
-    color: #543512;
-    padding: 8px 12px;
-    background: #fffbe9;
-    border-radius: 7px;
-    border: 1px solid #e1bb80;
-    min-height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    transition: box-shadow 0.2s, background 0.2s;
-}
-.detail-item span .material-icons {
-    margin-left: auto;
-    color: #e1bb80;
-    font-size: 20px;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-.detail-item span .material-icons:hover {
-    color: #667eea;
-}
-.detail-item .profile-edit-active {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: #fff;
-    border-radius: 9px;
-    box-shadow: 0 2px 12px 0 #e1bb8033;
-    border: 1.5px solid #667eea;
-    padding: 10px 16px;
-    min-height: 44px;
-    transition: box-shadow 0.2s, border 0.2s, background 0.2s;
-}
-.detail-item .profile-edit-active .form-control {
-    flex: 1;
-    font-size: 16px;
-    padding: 10px 14px;
-    border-radius: 7px;
-    border: 1.5px solid #667eea;
-    background: #fff;
-    color: #543512;
-    box-shadow: none;
-    transition: border 0.2s, box-shadow 0.2s;
-}
-.detail-item .profile-edit-active .form-control:focus {
-    border-color: #f093fb;
-    box-shadow: 0 0 0 2px #f093fb33;
-}
-.detail-item .profile-edit-active .btn {
-    padding: 8px 18px;
-    font-size: 15px;
-    border-radius: 7px;
-    margin-left: 8px;
-}
-.btn, .add-user-btn {
-    border-radius: 8px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    box-shadow: none;
-    border: none;
-    padding: 10px 22px;
-    font-size: 15px;
-    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-}
-.btn-primary, .add-user-btn {
-    background: #667eea;
-    color: #fff;
-}
-.btn-primary:hover, .add-user-btn:hover {
-    background: #543512;
-    color: #fffbe9;
-    box-shadow: 0 2px 8px 0 #e1bb8033;
-}
-.btn-secondary {
-    background: #f093fb;
-    color: #543512;
-}
-.btn-secondary:hover {
-    background: #e1bb80;
-    color: #543512;
-    box-shadow: 0 2px 8px 0 #f093fb33;
-}
-.form-control {
-    border: 1.5px solid #e1bb80;
-    border-radius: 7px;
-    padding: 8px 12px;
-    font-size: 15px;
-    background: #fffbe9;
-    color: #543512;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-.form-control:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 2px #667eea33;
-    background: #fff;
-}
-.notification {
-    padding: 14px 20px;
-    margin-bottom: 12px;
-    border-radius: 10px;
-    color: #fff;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    background: #f093fb;
-    box-shadow: 0 2px 8px 0 #e1bb8033;
-    border: none;
-    position: relative;
-    overflow: hidden;
-    animation: slideInRight 0.4s ease, fadeOut 0.5s 3s forwards;
-    max-width: 400px;
-}
-.notification.error {
-    background: #ff416c;
-}
-.notification.success {
-    background: #56ab2f;
-}
-`;
-
 const editableFields = ["phone", "street", "district", "city", "address"];
 
 const ProfilePage = () => {
@@ -316,19 +94,21 @@ const ProfilePage = () => {
           city: userData.city || "",
         };
 
-        const avatarUrl =
+        // Nếu chưa có avatar (user mới), luôn dùng avatar-placeholder
+        let avatarUrl =
           profileInfo.avatar && profileInfo.avatar.startsWith("http")
             ? profileInfo.avatar
-            : localStorage.getItem("lastAvatar") ||
-              "/images/avatar-placeholder.jpg";
+            : "/images/avatar-placeholder.jpg";
         setProfileData({ ...profileInfo, avatar: avatarUrl });
         setFormData({ ...profileInfo, avatar: avatarUrl });
-        setAvatarPreview(""); // reset preview khi đã có avatar mới
+        setAvatarPreview("");
         setPersistentAvatar(avatarUrl);
         setAvatarToShow(avatarUrl);
-        // Chỉ update localStorage nếu là URL Cloudinary
+        // Chỉ update localStorage nếu là URL Cloudinary (ảnh thật)
         if (avatarUrl.startsWith("http")) {
           localStorage.setItem("lastAvatar", avatarUrl);
+        } else {
+          localStorage.removeItem("lastAvatar");
         }
         setLoadingProfile(false);
         console.log("Profile data:", profileInfo);
@@ -353,15 +133,7 @@ const ProfilePage = () => {
     fetchProfile();
   }, []);
 
-  useEffect(() => {
-    // Thêm style tag vào head khi mount
-    const styleTag = document.createElement("style");
-    styleTag.innerHTML = profileStyles;
-    document.head.appendChild(styleTag);
-    return () => {
-      document.head.removeChild(styleTag);
-    };
-  }, []);
+  // Đã import CSS file, không cần useEffect chèn style tag nữa
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -602,21 +374,22 @@ const ProfilePage = () => {
     <div
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(120deg, #f5e6c9 0%, #e1bb80 100%)",
+        //  background: "linear-gradient(120deg, #a97847ea 0%, #9a681eff 100%)",
+        background: "##e1bb80",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
       }}
     >
       <div
-        className="main-content"
-        style={{
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+      // className="main-content"
+      // style={{
+      //   width: "100%",
+      //   display: "flex",
+      //   flexDirection: "column",
+      //   alignItems: "center",
+      //   justifyContent: "center",
+      // }}
       >
         {/* Simple Header */}
         {/* <div className="top-header" style={{ background: 'none', boxShadow: 'none', border: 'none', marginBottom: 0, justifyContent: 'flex-start', width: '100%', maxWidth: 600 }}>
@@ -742,7 +515,10 @@ const ProfilePage = () => {
                 <div className="detail-section">
                   <h3>Personal Information</h3>
                   <div className="detail-grid">
-                    <div className="detail-item">
+                    <div
+                      className="detail-item"
+                      style={{ gridColumn: "1 / -1" }}
+                    >
                       <label>Full Name</label>
                       {isEditing ? (
                         <input
@@ -752,9 +528,12 @@ const ProfilePage = () => {
                           onChange={handleInputChange}
                           className="form-control"
                           placeholder="Enter full name"
+                          style={{ width: "100%" }}
                         />
                       ) : (
-                        <span>{profileData.name || "Not provided"}</span>
+                        <span style={{ width: "100%" }}>
+                          {profileData.name || "Not provided"}
+                        </span>
                       )}
                     </div>
                     <div className="detail-item">
@@ -771,10 +550,13 @@ const ProfilePage = () => {
                             background: "#eee",
                             color: "#aaa",
                             cursor: "not-allowed",
+                            width: "100%",
                           }}
                         />
                       ) : (
-                        <span>{profileData.email || "Not provided"}</span>
+                        <span style={{ width: "100%" }}>
+                          {profileData.email || "Not provided"}
+                        </span>
                       )}
                     </div>
                     <div className="detail-item">
@@ -789,6 +571,7 @@ const ProfilePage = () => {
                             className="form-control"
                             placeholder="Enter phone number"
                             maxLength={10}
+                            style={{ width: "100%" }}
                           />
                           {error && error.toLowerCase().includes("phone") && (
                             <div
@@ -803,7 +586,9 @@ const ProfilePage = () => {
                           )}
                         </>
                       ) : (
-                        <span>{profileData.phone || "Not provided"}</span>
+                        <span style={{ width: "100%" }}>
+                          {profileData.phone || "Not provided"}
+                        </span>
                       )}
                     </div>
                     <div className="detail-item">
@@ -816,9 +601,12 @@ const ProfilePage = () => {
                           onChange={handleInputChange}
                           className="form-control"
                           placeholder="Enter street address"
+                          style={{ width: "100%" }}
                         />
                       ) : (
-                        <span>{profileData.street || "Not provided"}</span>
+                        <span style={{ width: "100%" }}>
+                          {profileData.street || "Not provided"}
+                        </span>
                       )}
                     </div>
                     <div className="detail-item">
@@ -831,9 +619,12 @@ const ProfilePage = () => {
                           onChange={handleInputChange}
                           className="form-control"
                           placeholder="Enter district"
+                          style={{ width: "100%" }}
                         />
                       ) : (
-                        <span>{profileData.district || "Not provided"}</span>
+                        <span style={{ width: "100%" }}>
+                          {profileData.district || "Not provided"}
+                        </span>
                       )}
                     </div>
                     <div className="detail-item">
@@ -846,14 +637,20 @@ const ProfilePage = () => {
                           onChange={handleInputChange}
                           className="form-control"
                           placeholder="Enter city"
+                          style={{ width: "100%" }}
                         />
                       ) : (
-                        <span>{profileData.city || "Not provided"}</span>
+                        <span style={{ width: "100%" }}>
+                          {profileData.city || "Not provided"}
+                        </span>
                       )}
                     </div>
-                    <div className="detail-item">
+                    <div
+                      className="detail-item"
+                      style={{ gridColumn: "1 / -1" }}
+                    >
                       <label>Full Address</label>
-                      <span>
+                      <span style={{ width: "100%" }}>
                         {profileData.address || "No address provided"}
                       </span>
                     </div>

@@ -44,12 +44,13 @@ const LoginPage = () => {
   };
 
   return (
-
     <div className="login-split-page">
       <div className="login-left-panel">
         <img src={logo} alt="Logo" className="login-logo" />
         <h2 className="login-title">Welcome Back !!</h2>
-        <p className="login-subtitle">Please enter your credentials to log in</p>
+        <p className="login-subtitle">
+          Please enter your credentials to log in
+        </p>
         <form className="login-form" onSubmit={handleLogin}>
           {error && <div className="error-text">{error}</div>}
 
@@ -57,7 +58,7 @@ const LoginPage = () => {
             className="login-input"
             type="email"
             name="email"
-            placeholder="Username"
+            placeholder="Email"
             value={formData.email}
             onChange={handleChange}
             required
@@ -74,9 +75,17 @@ const LoginPage = () => {
           />
 
           <div className="login-options">
-            <a href="#" className="forgot-link">
+            <span
+              className="forgot-link"
+              style={{
+                color: "#1a4a8a",
+                cursor: "pointer",
+                textDecoration: "underline",
+              }}
+              onClick={() => navigate("/forgot-password")}
+            >
               Forgot password?
-            </a>
+            </span>
           </div>
 
           <button type="submit" className="login-button">
@@ -89,10 +98,7 @@ const LoginPage = () => {
         <h1 className="brand-title">BookWorm</h1>
         <div className="brand-subtitle">LIBRARY</div>
         <div className="signup-prompt">New to our platform? Sign Up now.</div>
-        <button
-          className="signup-button"
-          onClick={() => navigate("/register")}
-        >
+        <button className="signup-button" onClick={() => navigate("/register")}>
           SIGN UP
         </button>
       </div>
