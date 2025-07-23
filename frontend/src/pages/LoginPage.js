@@ -28,12 +28,12 @@ const LoginPage = () => {
 
       // Save token to localStorage (optional)
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      if (
-        res.data.user.role === "manager" ||
-        res.data.user.role === "librarian"
-      ) {
-        navigate("/dashboard"); // ✅ redirect to dashboard
+      if (res.data.user.role === "manager") {
+        navigate("/dashboard");
+      } else if (res.data.user.role === "librarian") {
+        navigate("/librarian");
       } else {
         navigate("/");
       }

@@ -167,94 +167,153 @@ const createPaymentUrl = async (req, res, next) => {
 };
 
 const vnpayReturn = async (req, res, next) => {
-  console.log("vnpayReturn called!", req.query);
-
-  let vnp_Params = { ...req.query };
-
-  let secureHash = vnp_Params["vnp_SecureHash"];
-
-  let paymentId = vnp_Params["vnp_TxnRef"];
+  const vnp_Params = { ...req.query };
+  const secureHash = vnp_Params["vnp_SecureHash"];
+  const paymentId = vnp_Params["vnp_TxnRef"];
+  const rspCode = vnp_Params["vnp_ResponseCode"];
 
   const payment = await Payment.findById(paymentId).populate("loans");
   if (!payment) {
-    return res
-      .status(404)
-      .json({ RspCode: "01", message: "Payment not found" });
+    return res.redirect(
+      `http://localhost:3000/payment/success?status=error&message=Payment not found`
+    );
   }
-
-  let rspCode = vnp_Params["vnp_ResponseCode"];
 
   delete vnp_Params["vnp_SecureHash"];
   delete vnp_Params["vnp_SecureHashType"];
 
-  vnp_Params = sortObject(vnp_Params);
-  // let config = require("config");
-  let secretKey = vnpayConfig.vnp_HashSecret; // config.get("vnp_HashSecret");
-  let querystring = require("qs");
-  let signData = querystring.stringify(vnp_Params, { encode: false });
-  let crypto = require("crypto");
-  let hmac = crypto.createHmac("sha512", secretKey);
-  let signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
+  const sortedParams = sortObject(vnp_Params);
+  const querystring = require("qs");
+  const crypto = require("crypto");
 
-  let paymentStatus = "0"; // Giả sử '0' là trạng thái khởi tạo giao dịch, chưa có IPN. Trạng thái này được lưu khi yêu cầu thanh toán chuyển hướng sang Cổng thanh toán VNPAY tại đầu khởi tạo đơn hàng.
-  //let paymentStatus = '1'; // Giả sử '1' là trạng thái thành công bạn cập nhật sau IPN được gọi và trả kết quả về nó
-  //let paymentStatus = '2'; // Giả sử '2' là trạng thái thất bại bạn cập nhật sau IPN được gọi và trả kết quả về nó
+  const signData = querystring.stringify(sortedParams, { encode: false });
+  const signed = crypto
+    .createHmac("sha512", vnpayConfig.vnp_HashSecret)
+    .update(Buffer.from(signData, "utf-8"))
+    .digest("hex");
 
-  let checkPaymentId = true; // Mã đơn hàng "giá trị của vnp_TxnRef" VNPAY phản hồi tồn tại trong CSDL của bạn
-  let checkAmount = true; // Kiểm tra số tiền "giá trị của vnp_Amout/100" trùng khớp với số tiền của đơn hàng trong CSDL của bạn
-  if (secureHash === signed) {
-    //kiểm tra checksum
-    if (checkPaymentId) {
-      if (checkAmount) {
-        if (paymentStatus == "0") {
-          //kiểm tra tình trạng giao dịch trước khi cập nhật tình trạng thanh toán
-          if (rspCode == "00") {
-            //thanh cong
-            //paymentStatus = '1'
-            // Ở đây cập nhật trạng thái giao dịch thanh toán thành công vào CSDL của bạn
-            payment.status = "success";
-            payment.transactionId = vnp_Params["vnp_TransactionNo"];
-            payment.paidAt = moment(
-              vnp_Params["vnp_PayDate"],
-              "YYYYMMDDHHmmss"
-            ).toDate();
-            await payment.save();
+  if (secureHash !== signed) {
+    return res.redirect(
+      `http://localhost:3000/payment/success?status=error&message=Checksum failed`
+    );
+  }
 
-            for (const loan of payment.loans) {
-              loan.status = "returned";
-              loan.isPaid = true;
-              await loan.save();
-            }
-            res.status(200).json({ RspCode: "00", Message: "Success" });
-          } else {
-            //that bai
-            //paymentStatus = '2'
-            // Ở đây cập nhật trạng thái giao dịch thanh toán thất bại vào CSDL của bạn
-            payment.status = "failed";
-            payment.transactionId = vnp_Params["vnp_TransactionNo"];
-            payment.paidAt = moment(
-              vnp_Params["vnp_PayDate"],
-              "YYYYMMDDHHmmss"
-            ).toDate();
-            await payment.save();
-            res.status(200).json({ RspCode: "00", Message: "Success" });
-          }
-        } else {
-          res.status(200).json({
-            RspCode: "02",
-            Message: "This order has been updated to the payment status",
-          });
-        }
-      } else {
-        res.status(200).json({ RspCode: "04", Message: "Amount invalid" });
-      }
-    } else {
-      res.status(200).json({ RspCode: "01", Message: "Order not found" });
+  if (payment.status !== "pending") {
+    return res.redirect(`http://localhost:3000/payment/success?status=exists`);
+  }
+
+  payment.transactionId = vnp_Params["vnp_TransactionNo"];
+  payment.paidAt = moment(vnp_Params["vnp_PayDate"], "YYYYMMDDHHmmss").toDate();
+
+  if (rspCode === "00") {
+    payment.status = "success";
+    await payment.save();
+
+    for (const loan of payment.loans) {
+      loan.status = "returned";
+      loan.isPaid = true;
+      await loan.save();
     }
+
+    return res.redirect(
+      `http://localhost:3000/payment/success?status=success&amount=${payment.amount}`
+    );
   } else {
-    res.status(200).json({ RspCode: "97", Message: "Checksum failed" });
+    payment.status = "failed";
+    await payment.save();
+    return res.redirect(`http://localhost:3000/payment/success?status=failed`);
   }
 };
+
+// const vnpayReturn = async (req, res, next) => {
+//   console.log("vnpayReturn called!", req.query);
+
+//   let vnp_Params = { ...req.query };
+
+//   let secureHash = vnp_Params["vnp_SecureHash"];
+
+//   let paymentId = vnp_Params["vnp_TxnRef"];
+
+//   const payment = await Payment.findById(paymentId).populate("loans");
+//   if (!payment) {
+//     return res
+//       .status(404)
+//       .json({ RspCode: "01", message: "Payment not found" });
+//   }
+
+//   let rspCode = vnp_Params["vnp_ResponseCode"];
+
+//   delete vnp_Params["vnp_SecureHash"];
+//   delete vnp_Params["vnp_SecureHashType"];
+
+//   vnp_Params = sortObject(vnp_Params);
+//   // let config = require("config");
+//   let secretKey = vnpayConfig.vnp_HashSecret; // config.get("vnp_HashSecret");
+//   let querystring = require("qs");
+//   let signData = querystring.stringify(vnp_Params, { encode: false });
+//   let crypto = require("crypto");
+//   let hmac = crypto.createHmac("sha512", secretKey);
+//   let signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
+
+//   let paymentStatus = "0"; // Giả sử '0' là trạng thái khởi tạo giao dịch, chưa có IPN. Trạng thái này được lưu khi yêu cầu thanh toán chuyển hướng sang Cổng thanh toán VNPAY tại đầu khởi tạo đơn hàng.
+//   //let paymentStatus = '1'; // Giả sử '1' là trạng thái thành công bạn cập nhật sau IPN được gọi và trả kết quả về nó
+//   //let paymentStatus = '2'; // Giả sử '2' là trạng thái thất bại bạn cập nhật sau IPN được gọi và trả kết quả về nó
+
+//   let checkPaymentId = true; // Mã đơn hàng "giá trị của vnp_TxnRef" VNPAY phản hồi tồn tại trong CSDL của bạn
+//   let checkAmount = true; // Kiểm tra số tiền "giá trị của vnp_Amout/100" trùng khớp với số tiền của đơn hàng trong CSDL của bạn
+//   if (secureHash === signed) {
+//     //kiểm tra checksum
+//     if (checkPaymentId) {
+//       if (checkAmount) {
+//         if (paymentStatus == "0") {
+//           //kiểm tra tình trạng giao dịch trước khi cập nhật tình trạng thanh toán
+//           if (rspCode == "00") {
+//             //thanh cong
+//             //paymentStatus = '1'
+//             // Ở đây cập nhật trạng thái giao dịch thanh toán thành công vào CSDL của bạn
+//             payment.status = "success";
+//             payment.transactionId = vnp_Params["vnp_TransactionNo"];
+//             payment.paidAt = moment(
+//               vnp_Params["vnp_PayDate"],
+//               "YYYYMMDDHHmmss"
+//             ).toDate();
+//             await payment.save();
+
+//             for (const loan of payment.loans) {
+//               loan.status = "returned";
+//               loan.isPaid = true;
+//               await loan.save();
+//             }
+//             res.status(200).json({ RspCode: "00", Message: "Success" });
+//           } else {
+//             //that bai
+//             //paymentStatus = '2'
+//             // Ở đây cập nhật trạng thái giao dịch thanh toán thất bại vào CSDL của bạn
+//             payment.status = "failed";
+//             payment.transactionId = vnp_Params["vnp_TransactionNo"];
+//             payment.paidAt = moment(
+//               vnp_Params["vnp_PayDate"],
+//               "YYYYMMDDHHmmss"
+//             ).toDate();
+//             await payment.save();
+//             res.status(200).json({ RspCode: "00", Message: "Success" });
+//           }
+//         } else {
+//           res.status(200).json({
+//             RspCode: "02",
+//             Message: "This order has been updated to the payment status",
+//           });
+//         }
+//       } else {
+//         res.status(200).json({ RspCode: "04", Message: "Amount invalid" });
+//       }
+//     } else {
+//       res.status(200).json({ RspCode: "01", Message: "Order not found" });
+//     }
+//   } else {
+//     res.status(200).json({ RspCode: "97", Message: "Checksum failed" });
+//   }
+// };
 
 const getVNPayIpn = async (req, res, next) => {
   console.log("getVNPayIpn called!", req.query);

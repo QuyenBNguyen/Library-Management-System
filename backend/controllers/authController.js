@@ -85,12 +85,10 @@ exports.register = async (req, res) => {
       await sendVerificationEmail(email, otp);
     } catch (e) {
       console.error("Send OTP email error:", e);
-      return res
-        .status(400)
-        .json({
-          error:
-            "Email không tồn tại hoặc không nhận được mã xác thực. Vui lòng kiểm tra lại.",
-        });
+      return res.status(400).json({
+        error:
+          "Email không tồn tại hoặc không nhận được mã xác thực. Vui lòng kiểm tra lại.",
+      });
     }
 
     // 6. Tạo user mới sau khi gửi OTP thành công
@@ -133,13 +131,7 @@ exports.login = async (req, res) => {
     }
     console.log("✅ User found:", { _id: user._id, role: user.role });
 
-    // ✅ Kiểm tra xác thực email
-    if (!user.isVerified) {
-      console.log("❌ Email not verified");
-      return res
-        .status(403)
-        .json({ error: "Please verify your email before logging in." });
-    }
+    // Bỏ kiểm tra xác thực email để cho phép đăng nhập cả khi chưa verify
 
     const match = await bcrypt.compare(password, user.password);
     console.log("Password match:", match);

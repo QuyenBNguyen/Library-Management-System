@@ -23,6 +23,9 @@ import ChangePasswordPage from "./pages/ChangePasswordPage";
 import BorrowHistoryPage from "./pages/BorrowHistoryPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentFailure from "./pages/PaymentFailure";
+// ...existing code...
 
 import VerifyOtpPage from "./pages/EmailVerifiedPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
@@ -48,9 +51,10 @@ function App() {
         />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/dashboard/*" element={<DashboardPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/verify-otp" element={<VerifyOtpPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-
         <Route path="/dashboard/*" element={<DashboardPage />} />
         <Route
           path="/catalog"
@@ -60,15 +64,15 @@ function App() {
             </Layout>
           }
         />
-
         <Route path="/librarian" element={<LibrarianLayout />}>
           <Route index element={<LibrarianDashboardPage />} />
           <Route path="books" element={<BookManagementPage />} />
           <Route path="loans" element={<LoanManagmentPage />} />
-
           <Route path="payment-history" element={<PaymentHistoryPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="change-password" element={<ChangePasswordPage />} />
+          <Route path="borrow-history" element={<BorrowHistoryPage />} />
         </Route>
-
         <Route
           path="/payments"
           element={
@@ -77,12 +81,27 @@ function App() {
             </Layout>
           }
         />
-
         <Route
           path="/payment/vnpay-return"
           element={
             <Layout>
               <VNPayReturn />
+            </Layout>
+          }
+        />
+        <Route
+          path="/payment/success"
+          element={
+            <Layout>
+              <PaymentSuccess />
+            </Layout>
+          }
+        />
+        <Route
+          path="/payment/failure"
+          element={
+            <Layout>
+              <PaymentFailure />
             </Layout>
           }
         />
@@ -95,7 +114,6 @@ function App() {
             </Layout>
           }
         />
-
         {/* Các route còn lại trên menu */}
         <Route
           path="/profile"

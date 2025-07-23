@@ -1,5 +1,6 @@
 import React from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, Navigate } from "react-router-dom";
+import LibrarianProfileDropdown from "../components/LibrarianProfileDropdown";
 
 const styles = {
   body: {
@@ -58,10 +59,14 @@ const styles = {
 };
 
 const LibrarianLayout = () => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user || user.role !== "librarian") {
+    return <Navigate to="/" replace />;
+  }
   return (
     <div style={styles.body}>
       <header style={styles.header}>
-        <Link to="/" style={styles.logo}>
+        <Link to="/librarian" style={styles.logo}>
           Librarium
         </Link>
         <nav style={styles.navLinks}>
@@ -100,14 +105,7 @@ const LibrarianLayout = () => {
             Payments History
           </Link>
 
-          <Link
-            to="/profile"
-            style={styles.link}
-            onMouseOver={(e) => (e.target.style.color = "#f5e6c9")}
-            onMouseOut={(e) => (e.target.style.color = "#e1bb80")}
-          >
-            Profile
-          </Link>
+          <LibrarianProfileDropdown />
         </nav>
       </header>
       <main style={styles.content}>
