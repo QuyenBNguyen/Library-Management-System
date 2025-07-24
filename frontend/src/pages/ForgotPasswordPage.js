@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const ForgotPasswordPage = () => {
@@ -8,6 +8,25 @@ const ForgotPasswordPage = () => {
   const [newPassword, setNewPassword] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [canResend, setCanResend] = useState(true);
+
+  // Countdown timer effect
+  useEffect(() => {
+    let timer;
+    if (countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [countdown]);
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
@@ -15,16 +34,29 @@ const ForgotPasswordPage = () => {
     setMessage("");
     try {
       const res = await axios.post(
-        "http://localhost:5000/auth/forgot-password/send-otp",
+        "http://localhost:5000/auth/forgot-password",
         { email }
       );
       setMessage(res.data.message);
       setStep(2);
+      setCountdown(60); // 60 seconds countdown
+      setCanResend(false);
     } catch (err) {
-      setMessage(err.response?.data?.error || "Gửi mã xác thực thất bại");
+      if (err.response?.status === 429) {
+        setMessage(err.response.data.error);
+        setCountdown(err.response.data.remainingTime || 60);
+        setCanResend(false);
+      } else {
+        setMessage(err.response?.data?.error || "Gửi mã xác thực thất bại");
+      }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleResendOtp = async () => {
+    if (!canResend) return;
+    await handleSendOtp({ preventDefault: () => {} });
   };
 
   const handleResetPassword = async (e) => {
@@ -33,7 +65,7 @@ const ForgotPasswordPage = () => {
     setMessage("");
     try {
       const res = await axios.post(
-        "http://localhost:5000/auth/forgot-password/reset",
+        "http://localhost:5000/auth/reset-password",
         {
           email,
           otp,
@@ -118,30 +150,58 @@ const ForgotPasswordPage = () => {
         )}
         {step === 2 && (
           <form onSubmit={handleResetPassword}>
-            <input
-              type="text"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              placeholder="Mã xác thực OTP"
-              style={{
-                width: "100%",
-                padding: "12px",
-                fontSize: 17,
-                borderRadius: 8,
-                border: "1px solid #b2c8e6",
-                marginBottom: 14,
-                outline: "none",
-                letterSpacing: 4,
-                textAlign: "center",
-              }}
-              maxLength={6}
-              required
-            />
+            <div style={{ marginBottom: 14 }}>
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                placeholder="Mã xác thực OTP"
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  fontSize: 17,
+                  borderRadius: 8,
+                  border: "1px solid #b2c8e6",
+                  outline: "none",
+                  letterSpacing: 4,
+                  textAlign: "center",
+                }}
+                maxLength={6}
+                required
+              />
+              <div style={{ 
+                display: "flex", 
+                justifyContent: "space-between", 
+                alignItems: "center",
+                marginTop: 8,
+                fontSize: 14
+              }}>
+                <span style={{ color: "#666" }}>
+                  {countdown > 0 && `Gửi lại sau ${countdown}s`}
+                  {countdown === 0 && canResend && "Có thể gửi lại"}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={!canResend || isLoading}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: canResend ? "#1a4a8a" : "#ccc",
+                    cursor: canResend ? "pointer" : "not-allowed",
+                    textDecoration: "underline",
+                    fontSize: 14,
+                  }}
+                >
+                  Gửi lại OTP
+                </button>
+              </div>
+            </div>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Mật khẩu mới"
+              placeholder="Mật khẩu mới (tối thiểu 6 ký tự)"
               style={{
                 width: "100%",
                 padding: "12px",
@@ -170,7 +230,7 @@ const ForgotPasswordPage = () => {
               }}
               disabled={isLoading}
             >
-              {isLoading ? "Đang đổi mật khẩu..." : "Đổi mật khẩu"}
+              {isLoading ? "Đang xử lý..." : "Đặt lại mật khẩu"}
             </button>
           </form>
         )}

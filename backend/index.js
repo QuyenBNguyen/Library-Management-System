@@ -13,7 +13,7 @@ const errorHandler = require("./middleware/errorHandler");
 const { apiLimiter, authLimiter } = require("./middleware/rateLimiter");
 
 // Load env vars
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 // Connect to MongoDB
 console.log("Attempting to connect to MongoDB at:", process.env.MONGO_URI);

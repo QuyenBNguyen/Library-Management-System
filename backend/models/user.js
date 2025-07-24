@@ -82,7 +82,7 @@ const userSchema = new Schema({
     },
     isVerified: {
         type: Boolean,
-        default: false,
+        default: false, // Require email verification
     },
 }, {
     timestamps: true // Adds createdAt and updatedAt fields
