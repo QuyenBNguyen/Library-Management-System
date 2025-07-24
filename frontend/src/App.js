@@ -23,6 +23,8 @@ import ChangePasswordPage from "./pages/Member/ChangePasswordPage";
 import BorrowHistoryPage from "./pages/BorrowHistoryPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
+import Payment from "./pages/Member/Payment";
+import VNPayReturn from "./pages/Member/VNPayReturn";
 import PaymentSuccess from "./pages/Member/PaymentSuccess";
 import PaymentFailure from "./pages/Member/PaymentFailure";
 import BorrowListPage from "./pages/Member/BorrowListPage";
