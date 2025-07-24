@@ -123,10 +123,10 @@ const BorrowListPage = () => {
         alert("Failed to get payment URL.");
       }
 
-      setSelectedIds([]);
+      // setSelectedIds([]);
       // Refetch updated data
-      const borrowBooks = await borrowApi.getBorrowing();
-      setData(borrowBooks.data);
+      // const borrowBooks = await borrowApi.getBorrowing();
+      // setData(borrowBooks.data);
     } catch (err) {
       alert("Failed to return books.");
     }
