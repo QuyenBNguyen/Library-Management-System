@@ -31,7 +31,7 @@ const bookSchema = new Schema({
   summary: { type: String },
   status: {
     type: String,
-    enum: ["available", "checked out", "lost", "damaged", "maintenance"],
+    enum: ["available", "checked out", "lost", "damaged", "maintenance", "reserved"],
     default: "available",
   },
   createdAt: { type: Date, default: Date.now },

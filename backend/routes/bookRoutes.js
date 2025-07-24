@@ -1,6 +1,7 @@
 const express = require("express");
 const upload = require("../config/uploadConfig");
 const roleMiddleware = require("../middleware/roleMiddleware");
+const authMiddleware = require("../middleware/authMiddleware");
 
 // Import all book controllers here
 const {
@@ -35,6 +36,7 @@ router.get(
 // Update book (librarian only)
 router.put(
   "/:id",
+  authMiddleware,
   // roleMiddleware(["librarian"]),
   upload.single("image"),
   updateBookById

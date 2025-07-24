@@ -1,81 +1,276 @@
-import React, { useEffect, useState } from 'react';
-import loanApi from '../../api/loanApi';
+import React, { useEffect, useState } from "react";
+import paymentApi from "../../api/paymentApi";
+import borrowApi from "../../api/borrowApi";
 
 const styles = {
-  wrapper: { maxWidth: 900, margin: '2rem auto', background: '#f5e6c9', borderRadius: 16, padding: '2rem', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' },
-  title: { fontSize: '2rem', fontWeight: 700, color: '#543512', marginBottom: '2rem', textAlign: 'center' },
-  table: { width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: 12, overflow: 'hidden' },
-  th: { background: '#83552d', color: '#f5e6c9', padding: '1rem', fontWeight: 600, fontSize: '1rem', borderBottom: '2px solid #543512' },
-  td: { padding: '0.8rem 1rem', borderBottom: '1px solid #e1bb80', color: '#543512', fontSize: '1rem', textAlign: 'center' },
-  status: { fontWeight: 600, borderRadius: 8, padding: '0.3rem 1rem', display: 'inline-block' },
-  statusBorrowed: { background: 'rgba(255, 174, 0, 0.15)', color: '#ffae00' },
-  statusReturned: { background: 'rgba(92, 184, 92, 0.15)', color: '#5cb85c' },
-  statusOverdue: { background: 'rgba(217, 83, 79, 0.15)', color: '#d9534f' },
+  wrapper: {
+    maxWidth: 900,
+    margin: "2rem auto",
+    background: "#f5e6c9",
+    borderRadius: 16,
+    padding: "2rem",
+    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+  },
+  title: {
+    fontSize: "2rem",
+    fontWeight: 700,
+    color: "#543512",
+    marginBottom: "2rem",
+    textAlign: "center",
+  },
+  tabBar: {
+    display: "flex",
+    gap: 16,
+    marginBottom: 24,
+    justifyContent: "center",
+  },
+  tab: (isActive) => ({
+    padding: "0.7rem 2.2rem",
+    borderRadius: 8,
+    fontWeight: 600,
+    fontSize: "1.1rem",
+    background: isActive ? "#ffae00" : "#e1bb80",
+    color: isActive ? "#543512" : "#83552d",
+    border: "none",
+    cursor: "pointer",
+    transition: "background 0.2s",
+  }),
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    background: "#fff",
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  th: {
+    background: "#83552d",
+    color: "#f5e6c9",
+    padding: "1rem",
+    fontWeight: 600,
+    fontSize: "1rem",
+    borderBottom: "2px solid #543512",
+  },
+  td: {
+    padding: "0.8rem 1rem",
+    borderBottom: "1px solid #e1bb80",
+    color: "#543512",
+    fontSize: "1rem",
+    textAlign: "center",
+  },
+  returnButton: {
+    marginTop: "1.5rem",
+    background: "#d9534f",
+    color: "#fff",
+    border: "none",
+    borderRadius: 8,
+    padding: "0.7rem 1.5rem",
+    fontWeight: 600,
+    cursor: "pointer",
+    display: "block",
+    marginLeft: "auto",
+    marginRight: "auto",
+  },
 };
 
-const getStatusStyle = (status) => {
-  if (status === 'borrowed') return { ...styles.status, ...styles.statusBorrowed };
-  if (status === 'returned') return { ...styles.status, ...styles.statusReturned };
-  if (status === 'overdue') return { ...styles.status, ...styles.statusOverdue };
-  return styles.status;
-};
+const TABS = [
+  { key: "borrowing", label: "Borrowing" },
+  { key: "reserving", label: "Reserving" },
+  { key: "overdue", label: "Overdue" },
+];
 
 const BorrowListPage = () => {
-  const [loans, setLoans] = useState([]);
+  const [tab, setTab] = useState("borrowing");
+  const [data, setData] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchLoans = async () => {
+    const fetchTab = async () => {
       try {
         setLoading(true);
         setError(null);
-        const res = await loanApi.getAll();
-        setLoans(Array.isArray(res.data.data) ? res.data.data : []);
+        setSelectedIds([]);
+        let res;
+        if (tab === "borrowing") res = await borrowApi.getBorrowing();
+        else if (tab === "reserving") res = await borrowApi.getReserving();
+        else if (tab === "overdue") res = await borrowApi.getOverdue();
+        console.log("res.data", res.data);
+        setData(res.data);
       } catch (err) {
-        setError('Failed to fetch your borrow list.');
+        setError("Failed to fetch your borrow list.");
       } finally {
         setLoading(false);
       }
     };
-    fetchLoans();
-  }, []);
+    fetchTab();
+  }, [tab]);
+
+  const handleCheckboxChange = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleReturnBooks = async () => {
+    if (selectedIds.length === 0) return alert("No books selected.");
+    try {
+      const res = await paymentApi.createPaymentUrl(selectedIds); // <== Bạn cần định nghĩa API này trong loanApi
+      console.log("res.data", res.data);
+      if (res.data.url) {
+        window.location.href = res.data.url;
+      } else {
+        alert("Failed to get payment URL.");
+      }
+
+      // setSelectedIds([]);
+      // Refetch updated data
+      // const borrowBooks = await borrowApi.getBorrowing();
+      // setData(borrowBooks.data);
+    } catch (err) {
+      alert("Failed to return books.");
+    }
+  };
+
+  const handlePayFine = async (borrowBookId) => {
+    try {
+      const res = await paymentApi.createPaymentUrl(borrowBookId);
+      if (res.data.url) {
+        window.location.href = res.data.url;
+      } else {
+        alert("Failed to get payment URL.");
+      }
+    } catch (err) {
+      alert("Failed to initiate payment.");
+    }
+  };
 
   return (
     <div style={styles.wrapper}>
       <div style={styles.title}>My Borrowed Books</div>
+      <div style={styles.tabBar}>
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            style={styles.tab(tab === t.key)}
+            onClick={() => setTab(t.key)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       {loading ? (
-        <div style={{ color: '#543512', textAlign: 'center', margin: '2rem' }}>Loading...</div>
+        <div style={{ color: "#543512", textAlign: "center", margin: "2rem" }}>
+          Loading...
+        </div>
       ) : error ? (
-        <div style={{ color: 'red', textAlign: 'center', margin: '2rem' }}>{error}</div>
-      ) : loans.length === 0 ? (
-        <div style={{ color: '#543512', textAlign: 'center', margin: '2rem' }}>You have no borrowed books.</div>
+        <div style={{ color: "red", textAlign: "center", margin: "2rem" }}>
+          {error}
+        </div>
+      ) : data.length === 0 ? (
+        <div style={{ color: "#543512", textAlign: "center", margin: "2rem" }}>
+          No books found.
+        </div>
       ) : (
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>Book</th>
-              <th style={styles.th}>Checkout Date</th>
-              <th style={styles.th}>Due Date</th>
-              <th style={styles.th}>Return Date</th>
-              <th style={styles.th}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loans.map((loan) => (
-              <tr key={loan._id}>
-                <td style={styles.td}>{loan.book?.title || '-'}</td>
-                <td style={styles.td}>{loan.borrowDate ? new Date(loan.borrowDate).toLocaleDateString() : '-'}</td>
-                <td style={styles.td}>{loan.dueDate ? new Date(loan.dueDate).toLocaleDateString() : '-'}</td>
-                <td style={styles.td}>{loan.returnDate ? new Date(loan.returnDate).toLocaleDateString() : '-'}</td>
-                <td style={getStatusStyle(loan.status)}>{loan.status}</td>
+        <>
+          {tab === "reserving" && (
+            <div
+              style={{
+                color: "#d9534f",
+                textAlign: "center",
+                marginBottom: "1.5rem",
+                fontWeight: 600,
+              }}
+            >
+              Please come to the library to get your reserved books within 7
+              days, or your reservation will be cancelled.
+            </div>
+          )}
+
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.th}>Title</th>
+                <th style={styles.th}>Author</th>
+                <th style={styles.th}>Checkout Date</th>
+                <th style={styles.th}>Due Date</th>
+                {tab === "overdue" && <th style={styles.th}>Overdue Days</th>}
+                {tab === "overdue" && <th style={styles.th}>Fine</th>}
+                {tab === "overdue" && <th style={styles.th}></th>}
+                {tab === "borrowing" && <th style={styles.th}>Select</th>}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {data.map((bb) => (
+                <tr key={bb._id}>
+                  <td style={styles.td}>{bb.book?.title || "-"}</td>
+                  <td style={styles.td}>{bb.book?.author || "-"}</td>
+                  <td style={styles.td}>
+                    {bb.borrowSession?.borrowDate
+                      ? new Date(
+                          bb.borrowSession.borrowDate
+                        ).toLocaleDateString()
+                      : "-"}
+                  </td>
+                  <td style={styles.td}>
+                    {bb.borrowSession?.dueDate
+                      ? new Date(bb.borrowSession.dueDate).toLocaleDateString()
+                      : "-"}
+                  </td>
+                  {tab === "overdue" && (
+                    <td style={styles.td}>{bb.overdueDay || 0}</td>
+                  )}
+                  {tab === "overdue" && (
+                    <td style={styles.td}>
+                      {bb.fineAmount
+                        ? `${bb.fineAmount.toLocaleString()}₫`
+                        : "-"}
+                    </td>
+                  )}
+                  {tab === "overdue" && (
+                    <td style={styles.td}>
+                      {bb.fineAmount > 0 && (
+                        <button
+                          style={{
+                            background: "#ffae00",
+                            color: "#543512",
+                            border: "none",
+                            borderRadius: 8,
+                            padding: "0.5rem 1.2rem",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                          }}
+                          onClick={() => handlePayFine(bb._id)}
+                        >
+                          Pay Fine
+                        </button>
+                      )}
+                    </td>
+                  )}
+                  {tab === "borrowing" && (
+                    <td style={styles.td}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(bb._id)}
+                        onChange={() => handleCheckboxChange(bb._id)}
+                      />
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {tab === "borrowing" && selectedIds.length > 0 && (
+            <button style={styles.returnButton} onClick={handleReturnBooks}>
+              Return Selected Books
+            </button>
+          )}
+        </>
       )}
     </div>
   );
 };
 
-export default BorrowListPage; 
+export default BorrowListPage;

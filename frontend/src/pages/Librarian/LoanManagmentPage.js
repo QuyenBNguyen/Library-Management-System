@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
-import loanApi from "../../api/loanApi";
+import loanApi from "../../api/borrowApi";
 
 const LoanManagmentPage = () => {
   const [loans, setLoans] = useState([]);

@@ -5,9 +5,9 @@ const path = require("path");
 const memberRoutes = require("./routes/memberRoutes");
 const bookRoutes = require("./routes/bookRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
-const loanRoutes = require("./routes/loanRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const borrowRoutes = require("./routes/borrowRoutes");
 
 // Load env vars
 dotenv.config();
@@ -64,9 +64,9 @@ app.use("/auth", require("./routes/authRoutes"));
 app.use("/member", memberRoutes);
 
 app.use("/api/books", bookRoutes); // view, quản lý book
-app.use("/api/loans", authMiddleware, loanRoutes); // mượn trả sách + lịch sử
-app.use("/api/payments", authMiddleware, paymentRoutes); // thanh toán
+app.use("/api/payments", paymentRoutes); // thanh toán
 app.use("/api/dashboard", authMiddleware, dashboardRoutes);
+app.use("/api/borrow", authMiddleware, borrowRoutes);
 
 const PORT = process.env.PORT || 5000;
 
