@@ -20,7 +20,6 @@ import PaymentSuccess from "./pages/Member/PaymentSuccess";
 import PaymentFailure from "./pages/Member/PaymentFailure";
 import BorrowListPage from "./pages/Member/BorrowListPage";
 import BorrowSessionDetailPage from "./pages/BorrowSessionDetailPage";
-import PaymentHistory from "./pages/Member/PaymentHistory";
 
 
 function App() {
@@ -97,7 +96,6 @@ function App() {
             </Layout>
           }
         />
-        <Route path="/payments" element={<PaymentHistory />} />
       </Routes>
       
 

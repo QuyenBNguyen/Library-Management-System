@@ -1,6 +1,7 @@
 const moment = require("moment");
 const mongoose = require("mongoose");
 const Payment = require("../models/payment");
+const Book = require("../models/book");
 const BorrowBook = require("../models/borrowBook");
 const request = require("request");
 const vnpayConfig = require("../config/vnpayConfig");
@@ -59,19 +60,19 @@ const createPaymentUrl = async (req, res, next) => {
   const borrowBookIds = req.body.borrowBookIds;
 
   if (!borrowBookIds) {
-    return res.status(400).json({ message: "BorrowBook IDs are required" });
+    return res.status(400).json({ message: "Loan IDs are required" });
   }
 
   if (!Array.isArray(borrowBookIds)) {
-    return res.status(400).json({ message: "BorrowBook IDs must be an array" });
+    return res.status(400).json({ message: "Loan IDs must be an array" });
   }
 
   if (borrowBookIds.length === 0) {
-    return res.status(400).json({ message: "BorrowBook IDs must not be empty" });
+    return res.status(400).json({ message: "Loan IDs must not be empty" });
   }
 
   if (borrowBookIds.some((id) => !mongoose.Types.ObjectId.isValid(id))) {
-    return res.status(400).json({ message: "Invalid BorrowBook ID" });
+    return res.status(400).json({ message: "Invalid borrowBook ID" });
   }
 
   const borrowBookIdsSet = new Set(borrowBookIds);
@@ -84,17 +85,24 @@ const createPaymentUrl = async (req, res, next) => {
   let amount = 0;
 
   for (let i = 0; i < uniqueBorrowBookIds.length; i++) {
-    const bb = await BorrowBook.findById(uniqueBorrowBookIds[i]);
-    if (!bb) {
-      return res.status(400).json({ message: "BorrowBook not found" });
+    const borrowBook = await BorrowBook.findById(uniqueBorrowBookIds[i])
+      .populate("borrowSession")
+      .populate("book");
+    if (!borrowBook) {
+      return res.status(400).json({ message: "Loan not found" });
     }
-    if (
-      !bb.isPaid &&
-      (bb.fineAmount > 0)
-    ) {
-      amount += bb.fineAmount;
+
+    console.log("borrowBookIds", uniqueBorrowBookIds[i]);
+    console.log("info", borrowBook.borrowSession.dueDate);
+
+    if (!borrowBook.isPaid && borrowBook.borrowSession.dueDate < Date.now()) {
+      console.log("borrowBook amount to pay", borrowBook);
+      amount +=
+        10000 *
+        Math.floor((Date.now() - borrowBook.borrowSession.dueDate) / 86400000);
     }
   }
+  console.log("Số tiền phải trả: ", amount);
 
   const newPayment = await Payment.create({
     user: req.user._id,
@@ -166,7 +174,10 @@ const vnpayReturn = async (req, res, next) => {
   const paymentId = vnp_Params["vnp_TxnRef"];
   const rspCode = vnp_Params["vnp_ResponseCode"];
 
-  const payment = await Payment.findById(paymentId).populate({ path: "borrowBooks", populate: { path: "book" } });
+  const payment = await Payment.findById(paymentId).populate("borrowBooks");
+
+  console.log("payment return ✅", payment);
+
   if (!payment) {
     return res.redirect(
       `http://localhost:3000/payment/success?status=error&message=Payment not found`
@@ -202,17 +213,15 @@ const vnpayReturn = async (req, res, next) => {
   if (rspCode === "00") {
     payment.status = "success";
     await payment.save();
-    const BorrowBook = require("../models/borrowBook");
-    const Book = require("../models/book");
-    for (const bbId of payment.borrowBooks) {
-      const bb = await BorrowBook.findByIdAndUpdate(bbId, { isPaid: true }, { new: true });
-      if (bb && bb.book) {
-        await Book.findByIdAndUpdate(bb.book, { status: "available" });
-      }
-    }
-    if (req.headers.accept && req.headers.accept.includes("application/json")) {
-      const updatedPayment = await Payment.findById(paymentId).populate('user').populate({ path: 'borrowBooks', populate: { path: 'book' } });
-      return res.json({ payment: updatedPayment });
+
+    for (const borrowBook of payment.borrowBooks) {
+      borrowBook.returnDate = new Date();
+      borrowBook.isPaid = true;
+      await borrowBook.save();
+
+      const book = await Book.findById(borrowBook.book);
+      book.status = "available";
+      await book.save();
     }
     return res.redirect(
       `http://localhost:3000/payment/success?status=success&amount=${payment.amount}&paymentId=${payment._id}`

@@ -5,6 +5,13 @@ import BorrowBookModal from '../components/BorrowBookModal';
 import '../styles/dashboard.css';
 import { useNavigate } from 'react-router-dom';
 
+// Add a new tab for reserved books
+const TABS = [
+  { key: 'borrowed', label: 'Borrowed' },
+  { key: 'overdue', label: 'Overdue' },
+  { key: 'reserved', label: 'Reserved' },
+];
+
 const BorrowHistoryPage = () => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,6 +27,9 @@ const BorrowHistoryPage = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [userRole, setUserRole] = useState(null);
+  const [reservedBooks, setReservedBooks] = useState([]);
+  const [reservedLoading, setReservedLoading] = useState(false);
+  const [reservedError, setReservedError] = useState('');
 
   const navigate = useNavigate();
 
@@ -63,6 +73,28 @@ const BorrowHistoryPage = () => {
       setOverdueLoading(false);
     }
   };
+
+  // Fetch reserved books when reserved tab is active
+  useEffect(() => {
+    if (activeTab === 'reserved') {
+      const fetchReserved = async () => {
+        setReservedLoading(true);
+        setReservedError('');
+        try {
+          const token = localStorage.getItem('token');
+          const res = await axios.get('http://localhost:5000/api/borrow/books?status=reserved', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setReservedBooks(res.data.data || []);
+        } catch (err) {
+          setReservedError('Failed to fetch reserved books.');
+        } finally {
+          setReservedLoading(false);
+        }
+      };
+      fetchReserved();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     fetchHistory();
@@ -148,27 +180,37 @@ const BorrowHistoryPage = () => {
     }
   };
 
+  // Handler to change book status to checked out and renew session
+  const handleCheckoutReserved = async (borrowBookId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`http://localhost:5000/api/borrow/book/${borrowBookId}`, { status: 'checked out', renewSession: true }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Refresh reserved books
+      setReservedBooks(prev => prev.filter(b => b._id !== borrowBookId));
+    } catch (err) {
+      alert('Failed to check out reserved book.');
+    }
+  };
+
   return (
     <div className="content-container">
       <div className="user-table-card">
-        <div className="user-table-header-row" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 0 }}>
-          <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+        {/* Tab bar */}
+        <div style={{ display: 'flex', gap: 16, marginBottom: 24, justifyContent: 'center' }}>
+          {TABS.map(tab => (
             <button
-              className={activeTab === 'borrowed' ? 'btn btn-primary' : 'btn btn-secondary'}
-              style={{ borderRadius: 8, minWidth: 140, fontWeight: 600 }}
-              onClick={() => setActiveTab('borrowed')}
+              key={tab.key}
+              style={{ padding: '0.7rem 2.2rem', borderRadius: 8, fontWeight: 600, fontSize: '1.1rem', background: activeTab === tab.key ? '#ffae00' : '#e1bb80', color: activeTab === tab.key ? '#543512' : '#83552d', border: 'none', cursor: 'pointer', transition: 'background 0.2s' }}
+              onClick={() => setActiveTab(tab.key)}
             >
-              Borrowed Books
+              {tab.label}
             </button>
-            <button
-              className={activeTab === 'overdue' ? 'btn btn-primary' : 'btn btn-secondary'}
-              style={{ borderRadius: 8, minWidth: 140, fontWeight: 600 }}
-              onClick={() => setActiveTab('overdue')}
-            >
-              Overdue Borrowers
-            </button>
-          </div>
-          {activeTab === 'borrowed' && (
+          ))}
+        </div>
+        {activeTab === 'borrowed' ? (
+          <div className="user-table-header-row" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 0 }}>
             <div className="user-table-header-actions" style={{ marginTop: 0 }}>
               {userRole !== 'manager' && (
                 <button className="add-user-btn" onClick={() => setShowBorrowModal(true)}>
@@ -186,67 +228,45 @@ const BorrowHistoryPage = () => {
                 />
               </div>
             </div>
-          )}
-        </div>
-        {activeTab === 'borrowed' ? (
-          <div className="user-table-scroll">
-            <table className="user-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Borrower</th>
-                  <th>Number of Books</th>
-                  <th>Due Date</th>
-                  <th>Returned Books</th>
-                  <th>Not Returned Books</th>
-                  <th>Checkout Date</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan="8">Loading...</td></tr>
-                ) : error ? (
-                  <tr><td colSpan="8" style={{ color: '#d32f2f' }}>{error}</td></tr>
-                ) : filteredSessions.length === 0 ? (
-                  <tr><td colSpan="8">No borrow history found.</td></tr>
-                ) : (
-                  filteredSessions.map(({ session, books }) => {
-                    const hasUnreturned = books.some(b => !b.returnDate);
-                    const returnedCount = books.filter(b => b.returnDate).length;
-                    const notReturnedCount = books.length - returnedCount;
-                    return (
-                      <tr key={session._id}>
-                        <td>{session._id?.slice(-3) || '-'}</td>
-                        <td>{session.member?.name || '-'}</td>
-                        <td>{books.length} Books</td>
-                        <td>{session.dueDate ? new Date(session.dueDate).toLocaleDateString('en-GB') : '-'}</td>
-                        <td>{returnedCount}</td>
-                        <td>{notReturnedCount}</td>
-                        <td>{session.borrowDate ? new Date(session.borrowDate).toLocaleDateString('en-GB') + ' ' + new Date(session.borrowDate).toLocaleTimeString('en-GB', { hour12: false }) : '-'}</td>
-                        <td style={{ display: 'flex', gap: 8 }}>
-                          <button
-                            className="btn-action btn-view"
-                            title="View Detail"
-                            style={{
-                              padding: '0 18px',
-                              fontSize: 15,
-                              minWidth: 72,
-                              height: 36,
-                              borderRadius: 8,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              lineHeight: '1'
-                            }}
-                            onClick={() => navigate(`/dashboard/borrow-history/${session._id}`)}
-                          >
-                            View Detail
-                          </button>
-                          {userRole !== 'manager' && hasUnreturned ? (
+            <div className="user-table-scroll">
+              <table className="user-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Borrower</th>
+                    <th>Number of Books</th>
+                    <th>Due Date</th>
+                    <th>Returned Books</th>
+                    <th>Not Returned Books</th>
+                    <th>Checkout Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr><td colSpan="8">Loading...</td></tr>
+                  ) : error ? (
+                    <tr><td colSpan="8" style={{ color: '#d32f2f' }}>{error}</td></tr>
+                  ) : filteredSessions.length === 0 ? (
+                    <tr><td colSpan="8">No borrow history found.</td></tr>
+                  ) : (
+                    filteredSessions.map(({ session, books }) => {
+                      const hasUnreturned = books.some(b => !b.returnDate);
+                      const returnedCount = books.filter(b => b.returnDate).length;
+                      const notReturnedCount = books.length - returnedCount;
+                      return (
+                        <tr key={session._id}>
+                          <td>{session._id?.slice(-3) || '-'}</td>
+                          <td>{session.member?.name || '-'}</td>
+                          <td>{books.length} Books</td>
+                          <td>{session.dueDate ? new Date(session.dueDate).toLocaleDateString('en-GB') : '-'}</td>
+                          <td>{returnedCount}</td>
+                          <td>{notReturnedCount}</td>
+                          <td>{session.borrowDate ? new Date(session.borrowDate).toLocaleDateString('en-GB') + ' ' + new Date(session.borrowDate).toLocaleTimeString('en-GB', { hour12: false }) : '-'}</td>
+                          <td style={{ display: 'flex', gap: 8 }}>
                             <button
                               className="btn-action btn-view"
-                              title="Return all"
+                              title="View Detail"
                               style={{
                                 padding: '0 18px',
                                 fontSize: 15,
@@ -256,28 +276,48 @@ const BorrowHistoryPage = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                whiteSpace: 'nowrap',
                                 lineHeight: '1'
                               }}
-                              onClick={e => { e.stopPropagation(); handleReturnSession(books); }}
+                              onClick={() => navigate(`/dashboard/borrow-history/${session._id}`)}
                             >
-                              Return
+                              View Detail
                             </button>
-                          ) : userRole === 'manager' && hasUnreturned ? (
-                            <span style={{ color: '#aaa' }}>Not returned</span>
-                          ) : (
-                            <span style={{ color: '#aaa' }}>All returned</span>
-                          )}
-                          {/* Pay Fine button remains unchanged */}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                            {userRole !== 'manager' && hasUnreturned ? (
+                              <button
+                                className="btn-action btn-view"
+                                title="Return all"
+                                style={{
+                                  padding: '0 18px',
+                                  fontSize: 15,
+                                  minWidth: 72,
+                                  height: 36,
+                                  borderRadius: 8,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  whiteSpace: 'nowrap',
+                                  lineHeight: '1'
+                                }}
+                                onClick={e => { e.stopPropagation(); handleReturnSession(books); }}
+                              >
+                                Return
+                              </button>
+                            ) : userRole === 'manager' && hasUnreturned ? (
+                              <span style={{ color: '#aaa' }}>Not returned</span>
+                            ) : (
+                              <span style={{ color: '#aaa' }}>All returned</span>
+                            )}
+                            {/* Pay Fine button remains unchanged */}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        ) : (
+        ) : activeTab === 'overdue' ? (
           <div className="user-table-scroll">
             <table className="user-table">
               <thead>
@@ -367,6 +407,47 @@ const BorrowHistoryPage = () => {
                 )}
               </tbody>
             </table>
+          </div>
+        ) : (
+          <div>
+            <h2 style={{ textAlign: 'center', marginBottom: 16 }}>Reserved Books</h2>
+            {reservedLoading ? (
+              <div style={{ color: '#543512', textAlign: 'center', margin: '2rem' }}>Loading...</div>
+            ) : reservedError ? (
+              <div style={{ color: 'red', textAlign: 'center', margin: '2rem' }}>{reservedError}</div>
+            ) : reservedBooks.length === 0 ? (
+              <div style={{ color: '#543512', textAlign: 'center', margin: '2rem' }}>No reserved books found.</div>
+            ) : (
+              <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: 12, overflow: 'hidden' }}>
+                <thead>
+                  <tr>
+                    <th style={{ padding: '1rem', fontWeight: 600 }}>Title</th>
+                    <th style={{ padding: '1rem', fontWeight: 600 }}>Author</th>
+                    <th style={{ padding: '1rem', fontWeight: 600 }}>Member</th>
+                    <th style={{ padding: '1rem', fontWeight: 600 }}>Reservation Date</th>
+                    <th style={{ padding: '1rem', fontWeight: 600 }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reservedBooks.map(bb => (
+                    <tr key={bb._id}>
+                      <td style={{ padding: '0.8rem 1rem', textAlign: 'center' }}>{bb.book?.title || '-'}</td>
+                      <td style={{ padding: '0.8rem 1rem', textAlign: 'center' }}>{bb.book?.author || '-'}</td>
+                      <td style={{ padding: '0.8rem 1rem', textAlign: 'center' }}>{bb.borrowSession?.member?.email || bb.borrowSession?.member?.name || '-'}</td>
+                      <td style={{ padding: '0.8rem 1rem', textAlign: 'center' }}>{bb.borrowSession?.borrowDate ? new Date(bb.borrowSession.borrowDate).toLocaleDateString() : '-'}</td>
+                      <td style={{ padding: '0.8rem 1rem', textAlign: 'center' }}>
+                        {!userRole === 'manager' && (
+                          <button style={{ background: '#56ab2f', color: '#fff', border: 'none', borderRadius: 8, padding: '0.5rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}
+                            onClick={() => handleCheckoutReserved(bb._id)}>
+                            Check Out & Renew
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         )}
         {activeTab === 'borrowed' && (

@@ -3,10 +3,9 @@ const { Schema } = mongoose;
 
 const paymentSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  borrowBooks: [{ type: Schema.Types.ObjectId, ref: "BorrowBook", required: true }],
+  borrowBooks: [{ type: Schema.Types.ObjectId, ref: "BorrowBook" }],
   amount: { type: Number, required: true },
   method: { type: String, required: true },
-  transactionId: { type: String },
   status: {
     type: String,
     enum: ["pending", "success", "failed"],

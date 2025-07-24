@@ -17,12 +17,12 @@ const DashboardHome = ({ userRole }) => {
     librarians: 0,
     books: 0,
     checkedOut: 0,
-    loading: true
+    loading: true,
   });
 
   useEffect(() => {
     const fetchStats = async () => {
-      setStats(s => ({ ...s, loading: true }));
+      setStats((s) => ({ ...s, loading: true }));
       try {
         const token = localStorage.getItem("token");
         // Fetch users
@@ -30,29 +30,34 @@ const DashboardHome = ({ userRole }) => {
           headers: { Authorization: `Bearer ${token}` },
         });
         const users = usersRes.data.data || [];
-        const members = users.filter(u => u.role === 'member').length;
-        const librarians = users.filter(u => u.role === 'librarian').length;
+        const members = users.filter((u) => u.role === "member").length;
+        const librarians = users.filter((u) => u.role === "librarian").length;
         // Fetch books
         const booksRes = await axios.get("http://localhost:5000/api/books", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const books = booksRes.data.data || booksRes.data || [];
         // Fetch borrow sessions
-        const borrowRes = await axios.get("http://localhost:5000/api/borrow/history", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const borrowRes = await axios.get(
+          "http://localhost:5000/api/borrow/history",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         // Count all books with status 'checked out'
         let checkedOut = 0;
-        (books || []).forEach(b => { if (b.status === 'checked out') checkedOut++; });
+        (books || []).forEach((b) => {
+          if (b.status === "checked out") checkedOut++;
+        });
         setStats({
           members,
           librarians,
           books: books.length,
           checkedOut,
-          loading: false
+          loading: false,
         });
       } catch (err) {
-        setStats(s => ({ ...s, loading: false }));
+        setStats((s) => ({ ...s, loading: false }));
       }
     };
     fetchStats();
@@ -83,7 +88,6 @@ const DashboardHome = ({ userRole }) => {
   );
 };
 
-
 const DashboardPage = () => {
   const [userRole, setUserRole] = useState(null);
   const [userEmail, setUserEmail] = useState("");
@@ -93,9 +97,9 @@ const DashboardPage = () => {
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      navigate('/login');
+      navigate("/login");
     }
   }, [navigate]);
 
@@ -103,7 +107,7 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchRole = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         if (!token) return;
         const res = await axios.get('http://localhost:5000/members/profile/me', {
           headers: { Authorization: `Bearer ${token}` }
@@ -134,8 +138,8 @@ const DashboardPage = () => {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+    localStorage.removeItem("token");
+    navigate("/login");
   };
 
   // Determine active menu based on current path
@@ -143,7 +147,8 @@ const DashboardPage = () => {
   let activeMenu = "Dashboard";
   if (path.includes("/dashboard/users")) activeMenu = "Users";
   else if (path.includes("/dashboard/books")) activeMenu = "Books";
-  else if (path.includes("/dashboard/borrow-history")) activeMenu = "Borrow History";
+  else if (path.includes("/dashboard/borrow-history"))
+    activeMenu = "Borrow History";
   else if (path.includes("/dashboard/profile")) activeMenu = "Profile";
 
   return (
