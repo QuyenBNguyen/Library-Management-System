@@ -97,8 +97,8 @@ const styles = {
   },
   "@keyframes fadeIn": {
     from: { opacity: 0, transform: "translateY(-10px)" },
-    to: { opacity: 1, transform: "translateY(0)" }
-  }
+    to: { opacity: 1, transform: "translateY(0)" },
+  },
 };
 
 const Layout = ({ children }) => {
@@ -129,7 +129,7 @@ const Layout = ({ children }) => {
 
     // Add event listener
     document.addEventListener("mousedown", handleClickOutside);
-    
+
     // Cleanup
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -178,25 +178,17 @@ const Layout = ({ children }) => {
                 onMouseOver={(e) => (e.target.style.color = "#ffae00")}
                 onMouseOut={(e) => (e.target.style.color = "#e1bb80")}
               >
-                <img
-                  src={avatarUrl || defaultAvatar}
-                  alt="avatar"
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                    border: "2px solid #e1bb80",
-                    background: "#fff",
-                  }}
-                />
+                {<div>User</div>}
+
                 {isDropdownOpen ? "▲" : "▼"}
               </button>
               {isDropdownOpen && (
-                <div style={{
-                  ...styles.dropdownContent,
-                  animation: "fadeIn 0.2s ease-out"
-                }}>
+                <div
+                  style={{
+                    ...styles.dropdownContent,
+                    animation: "fadeIn 0.2s ease-out",
+                  }}
+                >
                   <Link
                     to="/profile"
                     style={styles.dropdownItem}

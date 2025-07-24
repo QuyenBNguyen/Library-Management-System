@@ -13,8 +13,8 @@ const RegisterPage = () => {
     password: "",
     phone: "",
   });
+
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -34,9 +34,9 @@ const RegisterPage = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+
     setIsLoading(true);
     try {
-      // Combine first and last name for backend
       const registerData = {
         name: formData.firstName || formData.lastName || 'User', // Handle single name input
         email: formData.email,
@@ -44,15 +44,18 @@ const RegisterPage = () => {
         phone: formData.phone,
         // role: 'member' by default (handled in backend)
       };
-      const res = await axios.post("http://localhost:5000/auth/register", registerData);
-      setSuccess("Registration successful! Redirecting to login...");
-      setError("");
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+
+      const res = await axios.post(
+        "http://localhost:5000/auth/register",
+        registerData
+      );
+
+      // Nếu đăng ký thành công, chuyển sang trang xác thực OTP và truyền email
+      navigate("/verify-otp", {
+        state: { email: formData.email },
+      });
     } catch (err) {
       setError(err.response?.data?.error || "Registration failed");
-      setSuccess("");
     } finally {
       setIsLoading(false);
     }
@@ -64,15 +67,25 @@ const RegisterPage = () => {
         <img src={logo} alt="Logo" className="register-logo" />
         <h1 className="brand-title">BookWorm</h1>
         <div className="brand-subtitle">LIBRARY</div>
-        <div className="signin-prompt">Already have Account? Sign in now.</div>
-        <button className="signin-button" onClick={() => navigate("/login")}>SIGN IN</button>
+        <div className="signin-prompt">
+          Already have an account? Sign in now.
+        </div>
+        <button className="signin-button" onClick={() => navigate("/login")}>
+          SIGN IN
+        </button>
       </div>
+
       <div className="register-right-panel">
-        <h2 className="register-title">Sign Up <img src={logo} alt="Logo" className="register-title-logo" /></h2>
-        <p className="register-subtitle">Please provide your information to sign up.</p>
+        <h2 className="register-title">
+          Sign Up <img src={logo} alt="Logo" className="register-title-logo" />
+        </h2>
+        <p className="register-subtitle">
+          Please provide your information to sign up.
+        </p>
+
         <form className="register-form" onSubmit={handleRegister}>
           {error && <div className="error-text">{error}</div>}
-          {success && <div className="success-text">{success}</div>}
+
           <div className="form-row form-row-double">
             <input
               className="register-input register-input-half"
@@ -93,6 +106,7 @@ const RegisterPage = () => {
               required
             />
           </div>
+
           <div className="form-row form-row-double">
             <input
               className="register-input register-input-half"
@@ -112,6 +126,7 @@ const RegisterPage = () => {
               required
             />
           </div>
+
           <div className="form-row form-row-double">
             <input
               className="register-input register-input-half"
@@ -132,7 +147,12 @@ const RegisterPage = () => {
               required
             />
           </div>
-          <button type="submit" className="register-button" disabled={isLoading}>
+
+          <button
+            type="submit"
+            className="register-button"
+            disabled={isLoading}
+          >
             {isLoading ? "Signing Up..." : "SIGN UP"}
           </button>
         </form>

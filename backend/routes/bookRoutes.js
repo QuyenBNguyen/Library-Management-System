@@ -18,6 +18,7 @@ const router = express.Router();
 // View all books (manager and librarian)
 router.get(
   "/",
+  // roleMiddleware(["librarian", "manager", "member"]),
   getAllBooks
 );
 // Create book (librarian only)
@@ -32,6 +33,7 @@ router.post(
 // View single book (manager, librarian, member)
 router.get(
   "/:id",
+  // roleMiddleware(["librarian", "manager", "member"]),
   getBookById
 );
 // Update book (librarian only)

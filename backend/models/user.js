@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
@@ -72,6 +72,17 @@ const userSchema = new Schema({
             message: 'Status must be either active or banned'
         },
         default: 'active'
+    },
+    // OTP fields for email verification from hien branch
+    otp: {
+        type: String,
+    },
+    otpExpires: {
+        type: Date,
+    },
+    isVerified: {
+        type: Boolean,
+        default: false,
     },
 }, {
     timestamps: true // Adds createdAt and updatedAt fields

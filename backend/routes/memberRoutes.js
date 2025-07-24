@@ -63,4 +63,7 @@ router.delete(
   memberController.deleteMember
 );
 
+// Mount avatar routes for member
+router.use("/avatar", require("./avatarRoutes"));
+
 module.exports = router;
