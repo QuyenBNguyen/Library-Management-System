@@ -19,7 +19,7 @@ const getAllPayments = async (req, res, next) => {
     query.$or = [
       { "user.name": { $regex: search, $options: "i" } },
       { "user.email": { $regex: search, $options: "i" } },
-      { "loans.book.title": { $regex: search, $options: "i" } },
+      // { "borrowBooks.book.title": { $regex: search, $options: "i" } },
     ];
   }
 
@@ -28,8 +28,8 @@ const getAllPayments = async (req, res, next) => {
 
     const payments = await Payment.find(query)
       .populate("user")
-      .populate("loans")
-      .populate("loans.book")
+      .populate("borrowBooks")
+      .populate("borrowBooks.book")
       .skip((page - 1) * limit)
       .limit(limit);
 
