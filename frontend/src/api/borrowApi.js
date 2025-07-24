@@ -1,6 +1,7 @@
 import axiosClient from "./axiosClient";
 
 const borrowApi = {
+  getAllForLibrarian: (params) => axiosClient.get("/borrow/books", { params }),
   getAll: (params) => axiosClient.get("/borrow/my-books", { params }),
   getById: (id) => axiosClient.get(`/borrow/book/${id}`),
   create: (data) => axiosClient.post("/borrow/book", data),

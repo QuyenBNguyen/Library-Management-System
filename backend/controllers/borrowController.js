@@ -154,7 +154,8 @@ exports.getAllBorrowBooks = async (req, res) => {
     }
     const count = await BorrowBook.countDocuments(query);
     let borrowBooks = await BorrowBook.find(query)
-      .populate({ path: "book", select: "title author" })
+      .populate({ path: "book" })
+
       .populate({
         path: "borrowSession",
         populate: { path: "member", select: "name email" },

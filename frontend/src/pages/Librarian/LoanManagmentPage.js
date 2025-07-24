@@ -14,7 +14,7 @@ const LoanManagmentPage = () => {
   const fetchLoans = async () => {
     try {
       setLoading(true);
-      const res = await loanApi.getAll({
+      const res = await loanApi.getAllForLibrarian({
         ...filters,
         page: pagination.page,
         limit: 8,
@@ -68,7 +68,7 @@ const LoanManagmentPage = () => {
                   {loan.book?.title}
                 </div>
                 <div className="col-span-2 py-2 px-4 border">
-                  {loan.user.email}
+                  {loan.borrowSession?.member?.email}
                 </div>
                 <div className=" py-2 px-4 border">
                   {dayjs(loan.borrowDate).format("DD/MM/YYYY")}
@@ -80,8 +80,12 @@ const LoanManagmentPage = () => {
                   {loan.returnDate &&
                     dayjs(loan.returnDate).format("DD/MM/YYYY")}
                 </div>
-                <div className=" py-2 px-4 border">{loan.status}</div>
-                <div className=" py-2 px-4 border">{loan.overdueFee}</div>
+                <div className=" py-2 px-4 border">
+                  {loan.book.status == "available"
+                    ? "returned"
+                    : loan.book.status}
+                </div>
+                <div className=" py-2 px-4 border">{loan.fineAmount}</div>
                 <div className=" py-2 px-4 border">
                   {loan.isPaid ? "Paid" : "Not Paid"}
                 </div>
