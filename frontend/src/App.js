@@ -36,15 +36,20 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={
+        <Route
+          path="/"
+          element={
             <Layout>
               <HomePage />
             </Layout>
-          }/>
+          }
+        />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/dashboard/*" element={<DashboardPage />} />
-        <Route path="/catalog" element={
+        <Route
+          path="/catalog"
+          element={
             <Layout>
               <BookListPage />
             </Layout>
@@ -60,16 +65,16 @@ function App() {
         </Route>
 
         <Route
-          path="/payments/vnpay_return"
+          path="/payment/success"
           element={
             <Layout>
               <PaymentSuccess />
             </Layout>
           }
         />
-        
+
         <Route
-          path="/payments/failure"
+          path="/payment/failure"
           element={
             <Layout>
               <PaymentFailure />

@@ -64,7 +64,7 @@ app.use("/auth", require("./routes/authRoutes"));
 app.use("/member", memberRoutes);
 
 app.use("/api/books", bookRoutes); // view, quản lý book
-app.use("/api/payments", authMiddleware, paymentRoutes); // thanh toán
+app.use("/api/payments", paymentRoutes); // thanh toán
 app.use("/api/dashboard", authMiddleware, dashboardRoutes);
 app.use("/api/borrow", authMiddleware, borrowRoutes);
 
