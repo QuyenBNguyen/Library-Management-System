@@ -115,12 +115,10 @@ exports.getBorrowHistory = async (req, res) => {
         // Calculate overdueDay and fineAmount for unreturned books
         const booksWithOverdue = books.map((b) => {
           if (!b.returnDate && new Date(session.dueDate) < now) {
-            const overdueDay = Math.max(
-              0,
-              Math.ceil(
-                (now - new Date(session.dueDate)) / (1000 * 60 * 60 * 24)
-              )
+            const overdueDay = Math.floor(
+              (now - session.dueDate) / (1000 * 60 * 60 * 24)
             );
+
             const fineAmount = overdueDay * 10000; // 50,000 VND per day
             return { ...b.toObject(), overdueDay, fineAmount };
           }
@@ -212,18 +210,58 @@ exports.getMyBorrowingBooks = async (req, res) => {
   try {
     const sessions = await BorrowSession.find({ member: req.user._id });
     const sessionIds = sessions.map((s) => s._id);
-    const borrowBooks = await BorrowBook.find({
+
+    let borrowBooks = await BorrowBook.find({
       borrowSession: { $in: sessionIds },
     })
       .populate({ path: "book" })
       .populate({ path: "borrowSession", select: "dueDate borrowDate" });
-    const result = borrowBooks.filter(
-      (bb) => !bb.returnDate && bb.book && bb.book.status === "checked out"
-    );
 
-    console.log("result", result);
+    const updates = [];
+
+    for (let bb of borrowBooks) {
+      if (!bb.returnDate && bb.book && bb.book.status === "checked out") {
+        const today = new Date();
+        const dueDate = new Date(bb.borrowSession.dueDate);
+        const overdueDay = Math.max(
+          0,
+          Math.floor((today - dueDate) / (1000 * 60 * 60 * 24))
+        );
+
+        console.log("overdueDay", overdueDay);
+
+        const fineAmount = overdueDay * 10000;
+
+        // Gán giá trị và lưu
+        bb.overdueDay = overdueDay;
+        bb.fineAmount = fineAmount;
+
+        updates.push(bb.save());
+      }
+    }
+
+    // Đợi tất cả các bản ghi được cập nhật
+    await Promise.all(updates);
+
+    // Lọc ra các bản ghi hợp lệ để trả về
+    borrowBooks = await BorrowBook.find({
+      borrowSession: { $in: sessionIds },
+    })
+      .populate({ path: "book" })
+      .populate({ path: "borrowSession", select: "dueDate borrowDate" });
+
+    console.log("borrowBooks 👽", borrowBooks);
+
+    const result = borrowBooks
+      .filter(
+        (bb) => !bb.returnDate && bb.book && bb.book.status === "checked out"
+      )
+      .map((bb) => bb.toObject());
+
+    // console.log("result", result);
     res.status(200).json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -250,15 +288,37 @@ exports.getMyReservingBooks = async (req, res) => {
 // GET /api/borrow/my-overdue - overdue books
 exports.getMyOverdueBooks = async (req, res) => {
   try {
-    await updateOverdueFinesForUser(req.user._id);
     const sessions = await BorrowSession.find({ member: req.user._id });
     const sessionIds = sessions.map((s) => s._id);
     const now = new Date();
-    const borrowBooks = await BorrowBook.find({
+
+    let borrowBooks = await BorrowBook.find({
       borrowSession: { $in: sessionIds },
     })
       .populate({ path: "book" })
       .populate({ path: "borrowSession", select: "dueDate borrowDate" });
+
+    const updates = [];
+
+    for (let bb of borrowBooks) {
+      if (!bb.returnDate && bb.book && bb.book.status === "checked out") {
+        const due = new Date(bb.borrowSession.dueDate);
+        const isOverdue = now > due;
+
+        if (isOverdue) {
+          const overdueDay = Math.floor((now - due) / (1000 * 60 * 60 * 24));
+          const fineAmount = overdueDay * 10000;
+
+          bb.overdueDay = overdueDay;
+          bb.fineAmount = fineAmount;
+
+          updates.push(bb.save());
+        }
+      }
+    }
+
+    await Promise.all(updates);
+
     const result = borrowBooks
       .filter((bb) => {
         if (bb.returnDate) return false;
@@ -270,9 +330,8 @@ exports.getMyOverdueBooks = async (req, res) => {
           new Date(due) < now
         );
       })
-      .map((bb) => {
-        return { ...bb.toObject() };
-      });
+      .map((bb) => bb.toObject());
+
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -100,7 +100,7 @@ const createPaymentUrl = async (req, res, next) => {
       console.log("borrowBook amount to pay", borrowBook);
       amount +=
         10000 *
-        Math.ceil((Date.now() - borrowBook.borrowSession.dueDate) / 86400000);
+        Math.floor((Date.now() - borrowBook.borrowSession.dueDate) / 86400000);
     }
   }
   console.log("Số tiền phải trả: ", amount);

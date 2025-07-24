@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import borrowApi from "../../api/loanApi";
 import paymentApi from "../../api/paymentApi";
+import borrowApi from "../../api/borrowApi";
 
 const styles = {
   wrapper: {
@@ -57,6 +57,19 @@ const styles = {
     fontSize: "1rem",
     textAlign: "center",
   },
+  returnButton: {
+    marginTop: "1.5rem",
+    background: "#d9534f",
+    color: "#fff",
+    border: "none",
+    borderRadius: 8,
+    padding: "0.7rem 1.5rem",
+    fontWeight: 600,
+    cursor: "pointer",
+    display: "block",
+    marginLeft: "auto",
+    marginRight: "auto",
+  },
 };
 
 const TABS = [
@@ -68,6 +81,7 @@ const TABS = [
 const BorrowListPage = () => {
   const [tab, setTab] = useState("borrowing");
   const [data, setData] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -76,11 +90,12 @@ const BorrowListPage = () => {
       try {
         setLoading(true);
         setError(null);
+        setSelectedIds([]);
         let res;
         if (tab === "borrowing") res = await borrowApi.getBorrowing();
         else if (tab === "reserving") res = await borrowApi.getReserving();
         else if (tab === "overdue") res = await borrowApi.getOverdue();
-        console.log(res.data);
+        console.log("res.data", res.data);
         setData(res.data);
       } catch (err) {
         setError("Failed to fetch your borrow list.");
@@ -90,6 +105,32 @@ const BorrowListPage = () => {
     };
     fetchTab();
   }, [tab]);
+
+  const handleCheckboxChange = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleReturnBooks = async () => {
+    if (selectedIds.length === 0) return alert("No books selected.");
+    try {
+      const res = await paymentApi.createPaymentUrl(selectedIds); // <== Bạn cần định nghĩa API này trong loanApi
+      console.log("res.data", res.data);
+      if (res.data.url) {
+        window.location.href = res.data.url;
+      } else {
+        alert("Failed to get payment URL.");
+      }
+
+      setSelectedIds([]);
+      // Refetch updated data
+      const borrowBooks = await borrowApi.getBorrowing();
+      setData(borrowBooks.data);
+    } catch (err) {
+      alert("Failed to return books.");
+    }
+  };
 
   const handlePayFine = async (borrowBookId) => {
     try {
@@ -118,6 +159,7 @@ const BorrowListPage = () => {
           </button>
         ))}
       </div>
+
       {loading ? (
         <div style={{ color: "#543512", textAlign: "center", margin: "2rem" }}>
           Loading...
@@ -145,6 +187,7 @@ const BorrowListPage = () => {
               days, or your reservation will be cancelled.
             </div>
           )}
+
           <table style={styles.table}>
             <thead>
               <tr>
@@ -155,10 +198,11 @@ const BorrowListPage = () => {
                 {tab === "overdue" && <th style={styles.th}>Overdue Days</th>}
                 {tab === "overdue" && <th style={styles.th}>Fine</th>}
                 {tab === "overdue" && <th style={styles.th}></th>}
+                {tab === "borrowing" && <th style={styles.th}>Select</th>}
               </tr>
             </thead>
             <tbody>
-              {data?.map((bb) => (
+              {data.map((bb) => (
                 <tr key={bb._id}>
                   <td style={styles.td}>{bb.book?.title || "-"}</td>
                   <td style={styles.td}>{bb.book?.author || "-"}</td>
@@ -171,7 +215,7 @@ const BorrowListPage = () => {
                   </td>
                   <td style={styles.td}>
                     {bb.borrowSession?.dueDate
-                      ? new Date(bb.borrowSession?.dueDate).toLocaleDateString()
+                      ? new Date(bb.borrowSession.dueDate).toLocaleDateString()
                       : "-"}
                   </td>
                   {tab === "overdue" && (
@@ -204,10 +248,25 @@ const BorrowListPage = () => {
                       )}
                     </td>
                   )}
+                  {tab === "borrowing" && (
+                    <td style={styles.td}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(bb._id)}
+                        onChange={() => handleCheckboxChange(bb._id)}
+                      />
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
           </table>
+
+          {tab === "borrowing" && selectedIds.length > 0 && (
+            <button style={styles.returnButton} onClick={handleReturnBooks}>
+              Return Selected Books
+            </button>
+          )}
         </>
       )}
     </div>
