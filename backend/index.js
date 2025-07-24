@@ -6,8 +6,8 @@ const memberRoutes = require("./routes/memberRoutes");
 const bookRoutes = require("./routes/bookRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
-const dashboardRoutes = require("./routes/dashboardRoutes");
 const borrowRoutes = require("./routes/borrowRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 // Load env vars
 dotenv.config();
@@ -62,10 +62,9 @@ app.get("/", (req, res) => {
 // Mount routers
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/member", memberRoutes);
-
+app.use("/users", userRoutes);
 app.use("/api/books", bookRoutes); // view, quản lý book
 app.use("/api/payments", authMiddleware, paymentRoutes); // thanh toán
-app.use("/api/dashboard", authMiddleware, dashboardRoutes);
 app.use("/api/borrow", authMiddleware, borrowRoutes);
 
 const PORT = process.env.PORT || 5000;
