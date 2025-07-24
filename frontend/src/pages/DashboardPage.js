@@ -47,7 +47,6 @@ const DashboardHome = ({ userRole }) => {
           checkedOut: totalLoans,
           loading: false
         });
-        });
         
       } catch (err) {
         console.error("Dashboard stats error:", err);
