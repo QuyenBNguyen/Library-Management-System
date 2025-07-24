@@ -10,20 +10,27 @@ const UserManagement = () => {
   const [modalMode, setModalMode] = useState("add"); // add | edit | view
   const [selectedUser, setSelectedUser] = useState(null);
   const [loading, setLoading] = useState(false);
+  // Add state for page and totalPages
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [page]);
 
   const fetchUsers = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5000/users", {
+      const res = await axios.get(`http://localhost:5000/users?page=${page}&limit=10`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data.data || []);
+      setTotalPages(res.data.totalPages || 1);
     } catch (err) {
       setUsers([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -169,6 +176,12 @@ const UserManagement = () => {
             </tbody>
           </table>
         </div>
+      </div>
+      {/* Add pagination controls below the table */}
+      <div style={{ marginTop: 24, textAlign: 'center' }}>
+        <button disabled={page === 1} onClick={() => setPage(page - 1)}>Previous</button>
+        <span style={{ margin: '0 12px' }}>Page {page} of {totalPages}</span>
+        <button disabled={page === totalPages} onClick={() => setPage(page + 1)}>Next</button>
       </div>
     </div>
   );

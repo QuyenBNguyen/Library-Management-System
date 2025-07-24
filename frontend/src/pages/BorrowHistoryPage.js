@@ -5,7 +5,7 @@ import BorrowBookModal from '../components/BorrowBookModal';
 import '../styles/dashboard.css';
 import { useNavigate } from 'react-router-dom';
 
-const BorrowHistoryPage = ({ userRole = 'member' }) => {
+const BorrowHistoryPage = () => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -16,6 +16,10 @@ const BorrowHistoryPage = ({ userRole = 'member' }) => {
   const [overdueSessions, setOverdueSessions] = useState([]);
   const [overdueLoading, setOverdueLoading] = useState(false);
   const [overdueError, setOverdueError] = useState('');
+  // Add state for page and totalPages
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [userRole, setUserRole] = useState(null);
 
   const navigate = useNavigate();
 
@@ -24,13 +28,16 @@ const BorrowHistoryPage = ({ userRole = 'member' }) => {
     setError('');
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/borrow/history', {
+      const user = JSON.parse(localStorage.getItem("user"));
+      setUserRole(user.role || null);
+      const response = await axios.get(`http://localhost:5000/api/borrow/history?page=${page}&limit=10`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
       setSessions(response.data.data || []);
+      setTotalPages(response.data.totalPages || 1);
     } catch (err) {
       setError('Failed to fetch borrow history.');
     } finally {
@@ -60,7 +67,7 @@ const BorrowHistoryPage = ({ userRole = 'member' }) => {
   useEffect(() => {
     fetchHistory();
     if (activeTab === 'overdue') fetchOverdue();
-  }, [activeTab]);
+  }, [activeTab, page]);
 
   const filteredSessions = sessions
     .filter(({ session, books }) => {
@@ -360,6 +367,13 @@ const BorrowHistoryPage = ({ userRole = 'member' }) => {
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+        {activeTab === 'borrowed' && (
+          <div style={{ marginTop: 24, textAlign: 'center' }}>
+            <button disabled={page === 1} onClick={() => setPage(page - 1)}>Previous</button>
+            <span style={{ margin: '0 12px' }}>Page {page} of {totalPages}</span>
+            <button disabled={page === totalPages} onClick={() => setPage(page + 1)}>Next</button>
           </div>
         )}
       </div>

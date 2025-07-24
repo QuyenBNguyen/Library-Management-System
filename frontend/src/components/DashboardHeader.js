@@ -9,6 +9,7 @@ const DashboardHeader = () => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
+        const user = JSON.parse(localStorage.getItem("user"));
         if (!token) return;
         let res;
         try {
@@ -16,12 +17,12 @@ const DashboardHeader = () => {
             headers: { Authorization: `Bearer ${token}` }
           });
         } catch {}
-        if (res && res.data && res.data.data) {
-          setUser({
-            email: res.data.data.email || "-",
-            role: res.data.data.role || "-"
-          });
-        }
+        console.log(user);
+        setUser({
+          email: user.email || "-",
+          role: user.role || "-"
+        });
+
       } catch {
         setUser({ email: "-", role: "-" });
       }

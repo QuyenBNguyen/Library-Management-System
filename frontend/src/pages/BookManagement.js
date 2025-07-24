@@ -3,27 +3,37 @@ import axios from "axios";
 import BookModal from "../components/BookModal";
 import "../styles/dashboard.css";
 
-const BookManagement = ({ userRole = 'member' }) => {
+const BookManagement = () => {
   const [books, setBooks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // add | edit | view
   const [selectedBook, setSelectedBook] = useState(null);
   const [loading, setLoading] = useState(false);
+  // Add state for page and totalPages
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     fetchBooks();
-  }, []);
+  }, [page]);
 
   const fetchBooks = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5000/api/books", {
+      const user = JSON.parse(localStorage.getItem("user"));
+      setUserRole(user.role || null);
+      const res = await axios.get(`http://localhost:5000/api/books?page=${page}&limit=10`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setBooks(res.data.data || res.data || []);
+      setBooks(res.data.data || []);
+      setTotalPages(res.data.totalPages || 1);
     } catch (err) {
       setBooks([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -177,6 +187,11 @@ const BookManagement = ({ userRole = 'member' }) => {
             </tbody>
           </table>
         </div>
+      </div>
+      <div style={{ marginTop: 24, textAlign: 'center' }}>
+        <button disabled={page === 1} onClick={() => setPage(page - 1)}>Previous</button>
+        <span style={{ margin: '0 12px' }}>Page {page} of {totalPages}</span>
+        <button disabled={page === totalPages} onClick={() => setPage(page + 1)}>Next</button>
       </div>
     </div>
   );
