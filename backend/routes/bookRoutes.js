@@ -2,6 +2,7 @@ const express = require("express");
 const upload = require("../config/uploadConfig");
 const roleMiddleware = require("../middleware/roleMiddleware");
 const { bookValidationRules, validate } = require("../middleware/validation");
+const authMiddleware = require("../middleware/authMiddleware");
 
 // Import all book controllers here
 const {
@@ -17,7 +18,6 @@ const router = express.Router();
 // View all books (manager and librarian)
 router.get(
   "/",
-  roleMiddleware(["librarian", "manager", "member"]),
   getAllBooks
 );
 // Create book (librarian only)
@@ -32,12 +32,12 @@ router.post(
 // View single book (manager, librarian, member)
 router.get(
   "/:id",
-  roleMiddleware(["librarian", "manager", "member"]),
   getBookById
 );
 // Update book (librarian only)
 router.put(
   "/:id",
+  authMiddleware,
   // roleMiddleware(["librarian"]),
   upload.single("image"),
   bookValidationRules(),

@@ -83,8 +83,8 @@ const bookSchema = new Schema({
   status: {
     type: String,
     enum: {
-      values: ["available", "checked out", "lost", "damaged", "maintenance"],
-      message: 'Status must be one of: available, checked out, lost, damaged, maintenance'
+      values: ["available", "checked out", "lost", "damaged", "maintenance", "reserved"],
+      message: 'Status must be one of: available, checked out, lost, damaged, maintenance, reserved'
     },
     default: "available",
   },

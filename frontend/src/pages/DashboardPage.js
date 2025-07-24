@@ -6,7 +6,7 @@ import "../styles/dashboard.css";
 import UserManagement from "./UserManagement";
 import BookManagement from "./BookManagement";
 import BorrowHistoryPage from "./BorrowHistoryPage";
-import ProfilePage from "./ProfilePage";
+import ProfilePage from "./Member/ProfilePage";
 import BorrowSessionDetailPage from "./BorrowSessionDetailPage";
 import axios from "axios";
 
@@ -17,12 +17,12 @@ const DashboardHome = ({ userRole }) => {
     librarians: 0,
     books: 0,
     checkedOut: 0,
-    loading: true
+    loading: true,
   });
 
   useEffect(() => {
     const fetchStats = async () => {
-      setStats(s => ({ ...s, loading: true }));
+      setStats((s) => ({ ...s, loading: true }));
       try {
         const token = localStorage.getItem("token");
         
@@ -33,12 +33,20 @@ const DashboardHome = ({ userRole }) => {
         
         const { totalBooks, totalUsers, totalLoans, totalPayments } = dashboardRes.data;
         
+        // Also fetch users to get librarian count
+        const usersRes = await axios.get("http://localhost:5000/users", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const users = usersRes.data.data || [];
+        const librarians = users.filter((u) => u.role === "librarian").length;
+        
         setStats({
           members: totalUsers,
-          librarians: 0, // This would need a separate endpoint to count librarians
+          librarians: librarians,
           books: totalBooks,
           checkedOut: totalLoans,
           loading: false
+        });
         });
         
       } catch (err) {
@@ -49,64 +57,139 @@ const DashboardHome = ({ userRole }) => {
     fetchStats();
   }, []);
 
-  if (userRole === 'manager') {
+  if (userRole === "manager") {
     return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
+      <div style={{ padding: "40px", textAlign: "center" }}>
         <h1>Welcome, Manager!</h1>
-        <p style={{ fontSize: '1.2rem', marginTop: '1.5rem' }}>
+        <p style={{ fontSize: "1.2rem", marginTop: "1.5rem" }}>
           You can view books and borrow history.
         </p>
-        <div style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
-          <div style={{ background: 'linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%)', padding: '30px', borderRadius: '12px', color: 'white', minWidth: '220px' }}>
+        <div
+          style={{
+            marginTop: "3rem",
+            display: "flex",
+            justifyContent: "center",
+            gap: "2rem",
+            flexWrap: "wrap",
+          }}
+        >
+          <div
+            style={{
+              background: "linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%)",
+              padding: "30px",
+              borderRadius: "12px",
+              color: "white",
+              minWidth: "220px",
+            }}
+          >
             <h3>Books</h3>
-            <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stats.loading ? '-' : stats.books}</p>
+            <p style={{ fontSize: "2rem", fontWeight: "bold" }}>
+              {stats.loading ? "-" : stats.books}
+            </p>
           </div>
-          <div style={{ background: 'linear-gradient(135deg, #ffb347 0%, #ffcc33 100%)', padding: '30px', borderRadius: '12px', color: 'white', minWidth: '220px' }}>
+          <div
+            style={{
+              background: "linear-gradient(135deg, #ffb347 0%, #ffcc33 100%)",
+              padding: "30px",
+              borderRadius: "12px",
+              color: "white",
+              minWidth: "220px",
+            }}
+          >
             <h3>Checked Out</h3>
-            <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stats.loading ? '-' : stats.checkedOut}</p>
+            <p style={{ fontSize: "2rem", fontWeight: "bold" }}>
+              {stats.loading ? "-" : stats.checkedOut}
+            </p>
           </div>
         </div>
       </div>
     );
   }
-  if (userRole === 'librarian') {
+  if (userRole === "librarian") {
     return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
+      <div style={{ padding: "40px", textAlign: "center" }}>
         <h1>Welcome, Librarian!</h1>
-        <p style={{ fontSize: '1.2rem', marginTop: '1.5rem' }}>
+        <p style={{ fontSize: "1.2rem", marginTop: "1.5rem" }}>
           You can manage books, members, and borrow history.
         </p>
-        <div style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
-          <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '30px', borderRadius: '12px', color: 'white', minWidth: '220px' }}>
+        <div
+          style={{
+            marginTop: "3rem",
+            display: "flex",
+            justifyContent: "center",
+            gap: "2rem",
+            flexWrap: "wrap",
+          }}
+        >
+          <div
+            style={{
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              padding: "30px",
+              borderRadius: "12px",
+              color: "white",
+              minWidth: "220px",
+            }}
+          >
             <h3>Members</h3>
-            <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stats.loading ? '-' : stats.members}</p>
+            <p style={{ fontSize: "2rem", fontWeight: "bold" }}>
+              {stats.loading ? "-" : stats.members}
+            </p>
           </div>
-          <div style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', padding: '30px', borderRadius: '12px', color: 'white', minWidth: '220px' }}>
+          <div
+            style={{
+              background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+              padding: "30px",
+              borderRadius: "12px",
+              color: "white",
+              minWidth: "220px",
+            }}
+          >
             <h3>Librarians</h3>
-            <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stats.loading ? '-' : stats.librarians}</p>
+            <p style={{ fontSize: "2rem", fontWeight: "bold" }}>
+              {stats.loading ? "-" : stats.librarians}
+            </p>
           </div>
-          <div style={{ background: 'linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%)', padding: '30px', borderRadius: '12px', color: 'white', minWidth: '220px' }}>
+          <div
+            style={{
+              background: "linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%)",
+              padding: "30px",
+              borderRadius: "12px",
+              color: "white",
+              minWidth: "220px",
+            }}
+          >
             <h3>Books</h3>
-            <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stats.loading ? '-' : stats.books}</p>
+            <p style={{ fontSize: "2rem", fontWeight: "bold" }}>
+              {stats.loading ? "-" : stats.books}
+            </p>
           </div>
-          <div style={{ background: 'linear-gradient(135deg, #ffb347 0%, #ffcc33 100%)', padding: '30px', borderRadius: '12px', color: 'white', minWidth: '220px' }}>
+          <div
+            style={{
+              background: "linear-gradient(135deg, #ffb347 0%, #ffcc33 100%)",
+              padding: "30px",
+              borderRadius: "12px",
+              color: "white",
+              minWidth: "220px",
+            }}
+          >
             <h3>Checked Out</h3>
-            <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stats.loading ? '-' : stats.checkedOut}</p>
+            <p style={{ fontSize: "2rem", fontWeight: "bold" }}>
+              {stats.loading ? "-" : stats.checkedOut}
+            </p>
           </div>
         </div>
       </div>
     );
   }
   return (
-    <div style={{ padding: '40px', textAlign: 'center' }}>
+    <div style={{ padding: "40px", textAlign: "center" }}>
       <h1>Welcome to the Librarium Dashboard!</h1>
-      <p style={{ fontSize: '1.2rem', marginTop: '1.5rem' }}>
+      <p style={{ fontSize: "1.2rem", marginTop: "1.5rem" }}>
         Your role does not have access to dashboard stats.
       </p>
     </div>
   );
 };
-
 
 const DashboardPage = () => {
   const [userRole, setUserRole] = useState(null); // Set to null initially
@@ -115,9 +198,9 @@ const DashboardPage = () => {
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      navigate('/login');
+      navigate("/login");
     }
   }, [navigate]);
 
@@ -125,7 +208,7 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchRole = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         if (!token) return;
         const res = await axios.get('http://localhost:5000/member/profile/me', {
           headers: { Authorization: `Bearer ${token}` }
@@ -134,7 +217,7 @@ const DashboardPage = () => {
           setUserRole(res.data.data.role);
         }
       } catch {
-        setUserRole('member');
+        setUserRole("member");
       }
     };
     fetchRole();
@@ -142,14 +225,14 @@ const DashboardPage = () => {
 
   // Redirect to login if role is not allowed
   useEffect(() => {
-    if (userRole && userRole !== 'manager' && userRole !== 'librarian') {
-      navigate('/login');
+    if (userRole && userRole !== "manager" && userRole !== "librarian") {
+      navigate("/login");
     }
   }, [userRole, navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+    localStorage.removeItem("token");
+    navigate("/login");
   };
 
   // Determine active menu based on current path
@@ -157,7 +240,8 @@ const DashboardPage = () => {
   let activeMenu = "Dashboard";
   if (path.includes("/dashboard/users")) activeMenu = "Users";
   else if (path.includes("/dashboard/books")) activeMenu = "Books";
-  else if (path.includes("/dashboard/borrow-history")) activeMenu = "Borrow History";
+  else if (path.includes("/dashboard/borrow-history"))
+    activeMenu = "Borrow History";
   else if (path.includes("/dashboard/profile")) activeMenu = "Profile";
 
   return (
@@ -168,9 +252,18 @@ const DashboardPage = () => {
         <div className="content-container">
           <Routes>
             <Route path="/users" element={<UserManagement />} />
-            <Route path="/books" element={<BookManagement userRole={userRole} />} />
-            <Route path="/borrow-history" element={<BorrowHistoryPage userRole={userRole} />} />
-            <Route path="/borrow-history/:sessionId" element={<BorrowSessionDetailPage />} />
+            <Route
+              path="/books"
+              element={<BookManagement userRole={userRole} />}
+            />
+            <Route
+              path="/borrow-history"
+              element={<BorrowHistoryPage userRole={userRole} />}
+            />
+            <Route
+              path="/borrow-history/:sessionId"
+              element={<BorrowSessionDetailPage />}
+            />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="*" element={<DashboardHome userRole={userRole} />} />
           </Routes>

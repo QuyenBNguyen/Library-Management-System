@@ -6,9 +6,9 @@ const memberRoutes = require("./routes/memberRoutes");
 const userRoutes = require("./routes/userRoutes");
 const bookRoutes = require("./routes/bookRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
-const loanRoutes = require("./routes/loanRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const borrowRoutes = require("./routes/borrowRoutes");
 const errorHandler = require("./middleware/errorHandler");
 const { apiLimiter, authLimiter } = require("./middleware/rateLimiter");
 
@@ -68,9 +68,9 @@ app.use("/member", memberRoutes);
 app.use("/users", authMiddleware, userRoutes); // User management routes
 
 app.use("/api/books", authMiddleware, bookRoutes); // view, quản lý book
-app.use("/api/loans", authMiddleware, loanRoutes); // mượn trả sách + lịch sử
 app.use("/api/payments", paymentRoutes); // thanh toán
 app.use("/api/dashboard", authMiddleware, dashboardRoutes);
+app.use("/api/borrow", authMiddleware, borrowRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

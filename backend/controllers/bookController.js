@@ -195,6 +195,21 @@ const updateBookById = async (req, res) => {
       }`;
     }
 
+    // If status is being set to 'reserved', create BorrowSession and BorrowBook for the user
+    if (status === 'reserved' && req.user && req.user._id) {
+      const BorrowSession = require('../models/borrowSession');
+      const BorrowBook = require('../models/borrowBook');
+      let session = await BorrowSession.findOne({ member: req.user._id, dueDate: { $gte: new Date() } });
+      if (!session) {
+        const dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        session = await BorrowSession.create({ member: req.user._id, dueDate });
+      }
+      const exists = await BorrowBook.findOne({ book: book._id, borrowSession: session._id });
+      if (!exists) {
+        await BorrowBook.create({ book: book._id, borrowSession: session._id, isPaid: false });
+      }
+    }
+
     const updatedBook = await book.save();
     res.status(200).json(updatedBook);
   } catch (err) {
