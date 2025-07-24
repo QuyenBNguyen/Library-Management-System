@@ -4,6 +4,8 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // Import các component và trang
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import EmailVerifiedPage from "./pages/EmailVerifiedPage";
 
 import Layout from "./components/Layout";
 import LibrarianLayout from "./layouts/LibrarianLayout";
@@ -38,29 +40,36 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={
+        <Route
+          path="/"
+          element={
             <Layout>
               <HomePage />
             </Layout>
-          }/>
+          }
+        />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/dashboard/*" element={<DashboardPage />} />
-        <Route path="/catalog" element={
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/verify-otp" element={<EmailVerifiedPage />} />
+        <Route
+          path="/catalog"
+          element={
             <Layout>
               <BookListPage />
             </Layout>
           }
         />
-
         <Route path="/librarian" element={<LibrarianLayout />}>
           <Route index element={<LibrarianDashboardPage />} />
           <Route path="books" element={<BookManagementPage />} />
           <Route path="loans" element={<LoanManagmentPage />} />
-
           <Route path="payment-history" element={<PaymentHistoryPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="change-password" element={<ChangePasswordPage />} />
+          <Route path="borrow-history" element={<BorrowHistoryPage />} />
         </Route>
-
         <Route
           path="/payments"
           element={
@@ -69,7 +78,6 @@ function App() {
             </Layout>
           }
         />
-
         <Route
           path="/payment/vnpay-return"
           element={
@@ -94,7 +102,6 @@ function App() {
             </Layout>
           }
         />
-
         {/* THÊM ROUTE ĐỘNG CHO TRANG CHI TIẾT SÁCH */}
         <Route
           path="/books/:bookId"
@@ -104,7 +111,6 @@ function App() {
             </Layout>
           }
         />
-
         {/* Các route còn lại trên menu */}
         <Route
           path="/profile"

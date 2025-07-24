@@ -31,9 +31,8 @@ const LoginPage = () => {
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
       if (res.data.user.role === "manager") {
-        navigate("/dashboard"); // ✅ redirect to dashboard
-      }
-      if (res.data.user.role === "librarian") {
+        navigate("/dashboard");
+      } else if (res.data.user.role === "librarian") {
         navigate("/librarian");
       } else {
         navigate("/");
@@ -59,7 +58,7 @@ const LoginPage = () => {
             className="login-input"
             type="email"
             name="email"
-            placeholder="Username"
+            placeholder="Email"
             value={formData.email}
             onChange={handleChange}
             required
@@ -76,9 +75,17 @@ const LoginPage = () => {
           />
 
           <div className="login-options">
-            <a href="#" className="forgot-link">
+            <span
+              className="forgot-link"
+              style={{
+                color: "#1a4a8a",
+                cursor: "pointer",
+                textDecoration: "underline",
+              }}
+              onClick={() => navigate("/forgot-password")}
+            >
               Forgot password?
-            </a>
+            </span>
           </div>
 
           <button type="submit" className="login-button">
