@@ -18,11 +18,16 @@ const TABS = [
   { key: 'overdue', label: 'Overdue' },
 ];
 
+const getSelectedTotal = (selected, data) => {
+  return data.filter(bb => selected.includes(bb._id)).reduce((sum, bb) => sum + (bb.fineAmount || 0), 0);
+};
+
 const BorrowListPage = () => {
   const [tab, setTab] = useState('borrowing');
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selected, setSelected] = useState([]);
 
   useEffect(() => {
     const fetchTab = async () => {
@@ -34,6 +39,7 @@ const BorrowListPage = () => {
         else if (tab === 'reserving') res = await borrowApi.getReserving();
         else if (tab === 'overdue') res = await borrowApi.getOverdue();
         setData(Array.isArray(res.data) ? res.data : []);
+        setSelected([]); // reset selection on tab change
       } catch (err) {
         setError('Failed to fetch your borrow list.');
       } finally {
@@ -43,9 +49,19 @@ const BorrowListPage = () => {
     fetchTab();
   }, [tab]);
 
-  const handlePayFine = async (borrowBookId) => {
+  const handleSelect = (id) => {
+    setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const handleSelectAll = () => {
+    if (selected.length === data.length) setSelected([]);
+    else setSelected(data.map(bb => bb._id));
+  };
+
+  const handlePayFine = async () => {
+    if (selected.length === 0) return;
     try {
-      const res = await paymentApi.createPaymentUrl(borrowBookId);
+      const res = await paymentApi.createPaymentUrl(selected);
       if (res.data.url) {
         window.location.href = res.data.url;
       } else {
@@ -80,38 +96,43 @@ const BorrowListPage = () => {
           <table style={styles.table}>
             <thead>
               <tr>
+                {tab === 'overdue' && <th style={styles.th}><input type="checkbox" checked={selected.length === data.length && data.length > 0} onChange={handleSelectAll} /></th>}
                 <th style={styles.th}>Title</th>
                 <th style={styles.th}>Author</th>
                 <th style={styles.th}>Checkout Date</th>
                 <th style={styles.th}>Due Date</th>
                 {tab === 'overdue' && <th style={styles.th}>Overdue Days</th>}
                 {tab === 'overdue' && <th style={styles.th}>Fine</th>}
-                {tab === 'overdue' && <th style={styles.th}></th>}
               </tr>
             </thead>
             <tbody>
               {data.map((bb) => (
                 <tr key={bb._id}>
+                  {tab === 'overdue' && <td style={styles.td}><input type="checkbox" checked={selected.includes(bb._id)} onChange={() => handleSelect(bb._id)} /></td>}
                   <td style={styles.td}>{bb.book?.title || '-'}</td>
                   <td style={styles.td}>{bb.book?.author || '-'}</td>
                   <td style={styles.td}>{bb.borrowSession?.borrowDate ? new Date(bb.borrowSession.borrowDate).toLocaleDateString() : '-'}</td>
                   <td style={styles.td}>{bb.borrowSession?.dueDate ? new Date(bb.borrowSession?.dueDate).toLocaleDateString() : '-'}</td>
                   {tab === 'overdue' && <td style={styles.td}>{bb.overdueDay || 0}</td>}
                   {tab === 'overdue' && <td style={styles.td}>{bb.fineAmount ? `${bb.fineAmount.toLocaleString()}₫` : '-'}</td>}
-                  {tab === 'overdue' && (
-                    <td style={styles.td}>
-                      {bb.fineAmount > 0 && (
-                        <button style={{ background: '#ffae00', color: '#543512', border: 'none', borderRadius: 8, padding: '0.5rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}
-                          onClick={() => handlePayFine(bb._id)}>
-                          Pay Fine
-                        </button>
-                      )}
-                    </td>
-                  )}
                 </tr>
               ))}
             </tbody>
           </table>
+          {tab === 'overdue' && (
+            <div style={{ marginTop: 24, textAlign: 'right' }}>
+              <span style={{ fontWeight: 600, fontSize: '1.1rem', marginRight: 24 }}>
+                Total Fine: {getSelectedTotal(selected, data).toLocaleString()}₫
+              </span>
+              <button
+                style={{ background: '#ffae00', color: '#543512', border: 'none', borderRadius: 8, padding: '0.7rem 2.2rem', fontWeight: 700, fontSize: '1.1rem', cursor: selected.length === 0 ? 'not-allowed' : 'pointer', opacity: selected.length === 0 ? 0.5 : 1 }}
+                disabled={selected.length === 0}
+                onClick={handlePayFine}
+              >
+                Pay Fine
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>
