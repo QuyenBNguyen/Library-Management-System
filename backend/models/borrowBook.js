@@ -7,6 +7,7 @@ const borrowBookSchema = new Schema({
     returnDate: { type: Date, default: null },
     overdueDay: { type: Number, default: 0 },
     fineAmount: { type: Number, default: 0 },
+    isPaid: { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model('BorrowBook', borrowBookSchema);

@@ -1,10 +1,14 @@
 import axiosClient from "./axiosClient";
 
-const loanApi = {
-  getAll: (params) => axiosClient.get("/loans", { params }),
-  create: (data) => axiosClient.post("/loans", data),
-  update: (id, data) => axiosClient.put(`/loans/${id}`, data),
-  delete: (id) => axiosClient.delete(`/loans/${id}`),
+const borrowApi = {
+  getAll: (params) => axiosClient.get("/borrow/my-books", { params }),
+  getById: (id) => axiosClient.get(`/borrow/book/${id}`),
+  create: (data) => axiosClient.post("/borrow/book", data),
+  update: (id, data) => axiosClient.put(`/borrow/book/${id}`, data),
+  delete: (id) => axiosClient.delete(`/borrow/book/${id}`),
+  getBorrowing: () => axiosClient.get("/borrow/my-borrowing"),
+  getReserving: () => axiosClient.get("/borrow/my-reserving"),
+  getOverdue: () => axiosClient.get("/borrow/my-overdue"),
 };
 
-export default loanApi;
+export default borrowApi;

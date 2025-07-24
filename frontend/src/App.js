@@ -11,9 +11,7 @@ import HomePage from "./pages/Member/HomePage";
 import BookListPage from "./pages/Member/BookListPage";
 import BookDetailPage from "./pages/Member/BookDetailPage"; // IMPORT TRANG MỚI
 import BookManagementPage from "./pages/Librarian/BookManagementPage";
-import Payment from "./pages/Member/Payment";
 import PaymentHistory from "./pages/Member/PaymentHistory";
-import VNPayReturn from "./pages/Member/VNPayReturn";
 import LibrarianDashboardPage from "./pages/Librarian/LibrarianDashboardPage";
 import LoanManagmentPage from "./pages/Librarian/LoanManagmentPage";
 import PaymentHistoryPage from "./pages/Librarian/PaymentHistoryPage";
@@ -62,32 +60,16 @@ function App() {
         </Route>
 
         <Route
-          path="/payments"
-          element={
-            <Layout>
-              <Payment />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/payment/vnpay-return"
-          element={
-            <Layout>
-              <VNPayReturn />
-            </Layout>
-          }
-        />
-        <Route
-          path="/payment/success"
+          path="/payments/vnpay_return"
           element={
             <Layout>
               <PaymentSuccess />
             </Layout>
           }
         />
+        
         <Route
-          path="/payment/failure"
+          path="/payments/failure"
           element={
             <Layout>
               <PaymentFailure />
