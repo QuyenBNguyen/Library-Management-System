@@ -6,7 +6,7 @@ import "../styles/dashboard.css";
 import UserManagement from "./UserManagement";
 import BookManagement from "./BookManagement";
 import BorrowHistoryPage from "./BorrowHistoryPage";
-import ProfilePage from "../pages/Member/ProfilePage";
+import ProfilePage from "./Member/ProfilePage";
 import BorrowSessionDetailPage from "./BorrowSessionDetailPage";
 import axios from "axios";
 

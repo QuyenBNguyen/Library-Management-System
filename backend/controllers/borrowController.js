@@ -220,6 +220,8 @@ exports.getMyBorrowingBooks = async (req, res) => {
     const result = borrowBooks.filter(
       (bb) => !bb.returnDate && bb.book && bb.book.status === "checked out"
     );
+
+    console.log("result", result);
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ message: error.message });

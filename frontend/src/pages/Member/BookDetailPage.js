@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import bookApi from '../../api/bookApi';
+import borrowApi from '../../api/loanApi';
 
 const styles = {
     pageWrapper: { padding: '2rem 4rem', position: 'relative' },
@@ -98,6 +99,10 @@ const BookDetailPage = () => {
       await bookApi.update(book._id || book.id, updated);
       setBook((prev) => ({ ...prev, status: 'reserved' }));
       setFeedback('Book reserved successfully!');
+      // Optionally, fetch the updated borrow list or provide a link
+      // const borrowList = await borrowApi.getAll();
+      // Optionally, navigate to borrow list:
+      // navigate('/member/borrow-list');
     } catch (err) {
       setFeedback('Failed to reserve book.');
     } finally {
