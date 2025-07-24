@@ -1,7 +1,7 @@
 const moment = require("moment");
 const mongoose = require("mongoose");
 const Payment = require("../models/payment");
-const Loan = require("../models/loan");
+const BorrowBook = require("../models/borrowBook");
 const request = require("request");
 const vnpayConfig = require("../config/vnpayConfig");
 
@@ -18,7 +18,7 @@ const getAllPayments = async (req, res, next) => {
     query.$or = [
       { "user.name": { $regex: search, $options: "i" } },
       { "user.email": { $regex: search, $options: "i" } },
-      { "loans.book.title": { $regex: search, $options: "i" } },
+      { "borrowBooks.book.title": { $regex: search, $options: "i" } },
     ];
   }
 
@@ -27,8 +27,7 @@ const getAllPayments = async (req, res, next) => {
 
     const payments = await Payment.find(query)
       .populate("user")
-      .populate("loans")
-      .populate("loans.book")
+      .populate({ path: "borrowBooks", populate: { path: "book" } })
       .skip((page - 1) * limit)
       .limit(limit);
 
@@ -45,62 +44,61 @@ const getAllPayments = async (req, res, next) => {
 const getMyPayments = async (req, res, next) => {
   const payments = await Payment.find({ user: req.user._id })
     .populate("user")
-    .populate("book");
+    .populate({ path: "borrowBooks", populate: { path: "book" } });
   res.status(200).json(payments);
 };
 
 const getAllPaymentsByUser = async (req, res, next) => {
   const payments = await Payment.find({ user: req.params.id })
     .populate("user")
-    .populate("book");
+    .populate({ path: "borrowBooks", populate: { path: "book" } });
   res.status(200).json(payments);
 };
 
 const createPaymentUrl = async (req, res, next) => {
-  const loanIds = req.body.loanIds;
+  const borrowBookIds = req.body.borrowBookIds;
 
-  if (!loanIds) {
-    return res.status(400).json({ message: "Loan IDs are required" });
+  if (!borrowBookIds) {
+    return res.status(400).json({ message: "BorrowBook IDs are required" });
   }
 
-  if (!Array.isArray(loanIds)) {
-    return res.status(400).json({ message: "Loan IDs must be an array" });
+  if (!Array.isArray(borrowBookIds)) {
+    return res.status(400).json({ message: "BorrowBook IDs must be an array" });
   }
 
-  if (loanIds.length === 0) {
-    return res.status(400).json({ message: "Loan IDs must not be empty" });
+  if (borrowBookIds.length === 0) {
+    return res.status(400).json({ message: "BorrowBook IDs must not be empty" });
   }
 
-  if (loanIds.some((id) => !mongoose.Types.ObjectId.isValid(id))) {
-    return res.status(400).json({ message: "Invalid loan ID" });
+  if (borrowBookIds.some((id) => !mongoose.Types.ObjectId.isValid(id))) {
+    return res.status(400).json({ message: "Invalid BorrowBook ID" });
   }
 
-  const loanIdsSet = new Set(loanIds);
-  const uniqueLoanIds = Array.from(loanIdsSet);
+  const borrowBookIdsSet = new Set(borrowBookIds);
+  const uniqueBorrowBookIds = Array.from(borrowBookIdsSet);
 
-  if (uniqueLoanIds.length !== loanIds.length) {
-    return res.status(400).json({ message: "Duplicate loan IDs" });
+  if (uniqueBorrowBookIds.length !== borrowBookIds.length) {
+    return res.status(400).json({ message: "Duplicate BorrowBook IDs" });
   }
 
   let amount = 0;
 
-  for (let i = 0; i < uniqueLoanIds.length; i++) {
-    const loan = await Loan.findById(uniqueLoanIds[i]);
-    if (!loan) {
-      return res.status(400).json({ message: "Loan not found" });
+  for (let i = 0; i < uniqueBorrowBookIds.length; i++) {
+    const bb = await BorrowBook.findById(uniqueBorrowBookIds[i]);
+    if (!bb) {
+      return res.status(400).json({ message: "BorrowBook not found" });
     }
     if (
-      !loan.isPaid &&
-      (loan.status === "overdue" || Date.now() > loan.dueDate)
+      !bb.isPaid &&
+      (bb.fineAmount > 0)
     ) {
-      amount +=
-        loan.overdueFee * Math.ceil((Date.now() - loan.dueDate) / 86400000);
+      amount += bb.fineAmount;
     }
   }
 
   const newPayment = await Payment.create({
     user: req.user._id,
-    loans: uniqueLoanIds,
+    borrowBooks: uniqueBorrowBookIds,
     amount: amount,
     method: "vnpay",
     status: "pending",
@@ -124,7 +122,6 @@ const createPaymentUrl = async (req, res, next) => {
   let vnpUrl = vnpayConfig.vnp_Url; // config.get("vnp_Url");
   let returnUrl = vnpayConfig.vnp_ReturnUrl; // config.get("vnp_ReturnUrl");
   let paymentId = newPayment._id;
-  let bankCode = req.body.bankCode;
 
   let locale = req.body.language || "vn";
   if (locale === null || locale === "") {
@@ -144,9 +141,6 @@ const createPaymentUrl = async (req, res, next) => {
   vnp_Params["vnp_ReturnUrl"] = returnUrl;
   vnp_Params["vnp_IpAddr"] = ipAddr;
   vnp_Params["vnp_CreateDate"] = createDate;
-  if (bankCode !== null && bankCode !== "") {
-    vnp_Params["vnp_BankCode"] = bankCode;
-  }
 
   vnp_Params = sortObject(vnp_Params);
 
@@ -172,7 +166,7 @@ const vnpayReturn = async (req, res, next) => {
   const paymentId = vnp_Params["vnp_TxnRef"];
   const rspCode = vnp_Params["vnp_ResponseCode"];
 
-  const payment = await Payment.findById(paymentId).populate("loans");
+  const payment = await Payment.findById(paymentId).populate({ path: "borrowBooks", populate: { path: "book" } });
   if (!payment) {
     return res.redirect(
       `http://localhost:3000/payment/success?status=error&message=Payment not found`
@@ -208,15 +202,20 @@ const vnpayReturn = async (req, res, next) => {
   if (rspCode === "00") {
     payment.status = "success";
     await payment.save();
-
-    for (const loan of payment.loans) {
-      loan.status = "returned";
-      loan.isPaid = true;
-      await loan.save();
+    const BorrowBook = require("../models/borrowBook");
+    const Book = require("../models/book");
+    for (const bbId of payment.borrowBooks) {
+      const bb = await BorrowBook.findByIdAndUpdate(bbId, { isPaid: true }, { new: true });
+      if (bb && bb.book) {
+        await Book.findByIdAndUpdate(bb.book, { status: "available" });
+      }
     }
-
+    if (req.headers.accept && req.headers.accept.includes("application/json")) {
+      const updatedPayment = await Payment.findById(paymentId).populate('user').populate({ path: 'borrowBooks', populate: { path: 'book' } });
+      return res.json({ payment: updatedPayment });
+    }
     return res.redirect(
-      `http://localhost:3000/payment/success?status=success&amount=${payment.amount}`
+      `http://localhost:3000/payment/success?status=success&amount=${payment.amount}&paymentId=${payment._id}`
     );
   } else {
     payment.status = "failed";
@@ -323,7 +322,7 @@ const getVNPayIpn = async (req, res, next) => {
 
   let paymentId = vnp_Params["vnp_TxnRef"];
 
-  const payment = Payment.findById(paymentId).populate("loans");
+  const payment = Payment.findById(paymentId).populate({ path: "borrowBooks", populate: { path: "book" } });
   if (!payment) {
     return res
       .status(404)
@@ -365,10 +364,9 @@ const getVNPayIpn = async (req, res, next) => {
             payment.paidAt = new Date(vnp_Params["vnp_PayDate"]);
             await payment.save();
 
-            for (const loan of payment.loans) {
-              loan.status = "returned";
-              loan.isPaid = true;
-              await loan.save();
+            for (const bb of payment.borrowBooks) {
+              bb.isPaid = true;
+              await bb.save();
             }
             res.status(200).json({ RspCode: "00", Message: "Success" });
           } else {

@@ -12,8 +12,7 @@ router.get(
 );
 router.get(
   "/my",
-  authMiddleware,
-  roleMiddleware(["member"]),
+
   paymentController.getMyPayments
 );
 router.get(
@@ -25,7 +24,6 @@ router.get(
 router.post(
   "/",
   authMiddleware,
-  roleMiddleware(["member", "librarian"]),
   paymentController.createPaymentUrl
 );
 router.get("/ipn", paymentController.getVNPayIpn);
