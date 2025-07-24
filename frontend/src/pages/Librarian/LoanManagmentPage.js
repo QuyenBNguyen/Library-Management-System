@@ -71,10 +71,10 @@ const LoanManagmentPage = () => {
                   {loan.borrowSession?.member?.email}
                 </div>
                 <div className=" py-2 px-4 border">
-                  {dayjs(loan.borrowDate).format("DD/MM/YYYY")}
+                  {dayjs(loan.borrowSession.borrowDate).format("DD/MM/YYYY")}
                 </div>
                 <div className=" py-2 px-4 border">
-                  {dayjs(loan.dueDate).format("DD/MM/YYYY")}
+                  {dayjs(loan.borrowSession.dueDate).format("DD/MM/YYYY")}
                 </div>
                 <div className=" py-2 px-4 border">
                   {loan.returnDate &&
